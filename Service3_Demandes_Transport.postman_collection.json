@@ -1,0 +1,230 @@
+{
+  "info": {
+    "name": "Service 3 - Demandes de Transport",
+    "_postman_id": "service3-demandes-transport",
+    "description": "Collection Postman pour tester le Service 3 : Demandes de Transport",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8083",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "demande_id",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Demandes",
+      "item": [
+        {
+          "name": "Créer une Demande",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"volume\": 15.5,\n  \"natureMarchandise\": \"Meubles\",\n  \"dateDepart\": \"2024-12-15T10:00:00\",\n  \"adresseDepart\": \"123 Rue Example, Paris, 75001\",\n  \"adresseDestination\": \"456 Avenue Test, Lyon, 69001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Valider une Demande (Client)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes/{{demande_id}}/validation",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes", "{{demande_id}}", "validation"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Récupérer toutes mes Demandes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Récupérer une Demande par ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes/{{demande_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes", "{{demande_id}}"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Webhook - Mise à jour Statut Paiement",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nouveauStatut\": \"PAYEE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes/{{demande_id}}/paiement",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes", "{{demande_id}}", "paiement"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Exemples de Demandes",
+      "item": [
+        {
+          "name": "Demande - Transport de Meubles",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"volume\": 20.0,\n  \"natureMarchandise\": \"Meubles - Canapé et table\",\n  \"dateDepart\": \"2024-12-20T09:00:00\",\n  \"adresseDepart\": \"45 Boulevard Haussmann, Paris, 75008\",\n  \"adresseDestination\": \"12 Rue de la République, Marseille, 13001\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Demande - Électroménager",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"volume\": 8.5,\n  \"natureMarchandise\": \"Électroménager - Réfrigérateur et lave-linge\",\n  \"dateDepart\": \"2024-12-18T14:00:00\",\n  \"adresseDepart\": \"30 Avenue des Champs-Élysées, Paris, 75008\",\n  \"adresseDestination\": \"5 Place Bellecour, Lyon, 69002\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Demande - Matériaux de Construction",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"volume\": 35.0,\n  \"natureMarchandise\": \"Matériaux de construction - Briques et ciment\",\n  \"dateDepart\": \"2024-12-22T08:00:00\",\n  \"adresseDepart\": \"Zone Industrielle Nord, Toulouse, 31000\",\n  \"adresseDestination\": \"Chantier du Port, Bordeaux, 33000\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes"]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
+

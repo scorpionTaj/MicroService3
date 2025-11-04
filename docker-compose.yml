@@ -1,0 +1,81 @@
+version: '3.8'
+
+services:
+  # Base de données PostgreSQL
+  postgres-demandes:
+    image: postgres:16-alpine
+    container_name: postgres-demandes-db
+    environment:
+      POSTGRES_DB: demandes_db
+      POSTGRES_USER: demandes_user
+      POSTGRES_PASSWORD: demandes_password
+    ports:
+      - "5433:5432"
+    volumes:
+      - postgres-demandes-data:/var/lib/postgresql/data
+      - ./src/main/resources/schema.sql:/docker-entrypoint-initdb.d/schema.sql
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U demandes_user -d demandes_db"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Service Demandes de Transport
+  service-demandes:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: service-demandes-transport
+    depends_on:
+      postgres-demandes:
+        condition: service_healthy
+    environment:
+      # Configuration Base de données
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres-demandes:5432/demandes_db
+      SPRING_DATASOURCE_USERNAME: demandes_user
+      SPRING_DATASOURCE_PASSWORD: demandes_password
+
+      # Configuration JPA
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update
+      SPRING_JPA_SHOW_SQL: "true"
+
+      # Configuration JWT (à synchroniser avec le Service 1)
+      JWT_SECRET: "your-secret-key-min-256-bits-long-change-this-in-production-should-be-same-as-service1"
+      JWT_EXPIRATION: 86400000
+
+      # URLs des autres services
+      SERVICE_URL_UTILISATEURS: http://service-utilisateurs:8081/api/v1
+      SERVICE_URL_ITINERAIRES: http://service-itineraires:8084/api/v1/itineraires
+      SERVICE_URL_TARIFICATION: http://service-tarification:8085/api/v1/tarifs
+      SERVICE_URL_MATCHING: http://service-matching:8088/api/v1/matching
+      SERVICE_URL_PAIEMENTS: http://service-paiements:8087/api/v1/paiements
+
+      # Configuration serveur
+      SERVER_PORT: 8083
+
+      # Logging
+      LOGGING_LEVEL_MA_TNA_MICROSERVICE3: DEBUG
+    ports:
+      - "8083:8083"
+    networks:
+      - microservices-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:8083/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+volumes:
+  postgres-demandes-data:
+    driver: local
+
+networks:
+  microservices-network:
+    external: true
+    # Si le réseau n'existe pas, créez-le avec:
+    # docker network create microservices-network
+
