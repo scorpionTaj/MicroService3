@@ -4,8 +4,8 @@
 Ce microservice gère les demandes de transport dans le système de logistique. Il permet aux clients de créer des demandes de transport, d'obtenir des devis estimés, et de valider leurs demandes.
 
 ## Technologies Utilisées
-- **Java 21** (LTS)
-- **Spring Boot 3.5.7**
+- **Java 25**
+- **Spring Boot 4**
 - **Spring Data JPA** (avec PostgreSQL)
 - **Spring Security 6+** (avec JWT)
 - **Spring WebFlux** (WebClient pour les appels inter-services)
