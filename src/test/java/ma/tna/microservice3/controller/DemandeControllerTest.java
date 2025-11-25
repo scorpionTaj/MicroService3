@@ -145,7 +145,7 @@ class DemandeControllerTest {
         mockMvc.perform(post("/api/v1/demandes")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(requestDTO)))
-                .andExpect(status().isUnauthorized());
+                .andExpect(status().isForbidden());
     }
 }
 

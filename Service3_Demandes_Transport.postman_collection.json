@@ -1,8 +1,8 @@
 {
   "info": {
-    "name": "Service 3 - Demandes de Transport",
-    "_postman_id": "service3-demandes-transport",
-    "description": "Collection Postman pour tester le Service 3 : Demandes de Transport",
+    "name": "Service 3 - Demandes de Transport (Complete)",
+    "_postman_id": "service3-demandes-transport-complete",
+    "description": "Collection Postman complète pour tester le Service 3 : Demandes de Transport\n\n## Instructions\n1. Le token JWT de test est déjà configuré et valide jusqu'en 2030\n2. Lancez d'abord 'Health Check' pour vérifier que le service fonctionne\n3. Créez une demande avec 'Créer une Demande'\n4. Copiez l'ID de la demande créée et mettez-le dans la variable 'demande_id'\n5. Testez les autres endpoints",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -13,21 +13,114 @@
     },
     {
       "key": "jwt_token",
-      "value": "",
-      "type": "string"
+      "value": "eyJhbGciOiJIUzM4NCJ9.eyJyb2xlIjoiQ0xJRU5UIiwidXNlcklkIjoxLCJzdWIiOiIxIiwiaWF0IjoxNzY0MTA4NjQ4LCJleHAiOjE3OTU2NDQ2NDh9.MsAIo8mq0sGFYTZ5XNK8oHU-fcQhZNCRWIJ_CxTtB2sau88MBHz4JiO6-DhhqHnl",
+      "type": "string",
+      "description": "Token JWT valide pour 1 an - userId=1, role=ROLE_CLIENT"
     },
     {
       "key": "demande_id",
-      "value": "",
-      "type": "string"
+      "value": "1",
+      "type": "string",
+      "description": "ID de la demande à utiliser pour les tests"
     }
   ],
   "item": [
     {
-      "name": "Demandes",
+      "name": "🏥 Health & Status",
       "item": [
         {
-          "name": "Créer une Demande",
+          "name": "Health Check",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/health",
+              "host": ["{{baseUrl}}"],
+              "path": ["actuator", "health"]
+            },
+            "description": "Vérifie que l'application est opérationnelle"
+          },
+          "response": []
+        },
+        {
+          "name": "Liveness Probe",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/health/liveness",
+              "host": ["{{baseUrl}}"],
+              "path": ["actuator", "health", "liveness"]
+            },
+            "description": "Probe Kubernetes pour vérifier si l'application est vivante"
+          },
+          "response": []
+        },
+        {
+          "name": "Readiness Probe",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/health/readiness",
+              "host": ["{{baseUrl}}"],
+              "path": ["actuator", "health", "readiness"]
+            },
+            "description": "Probe Kubernetes pour vérifier si l'application est prête"
+          },
+          "response": []
+        },
+        {
+          "name": "Metrics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/metrics",
+              "host": ["{{baseUrl}}"],
+              "path": ["actuator", "metrics"]
+            },
+            "description": "Liste toutes les métriques disponibles"
+          },
+          "response": []
+        },
+        {
+          "name": "Info",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/actuator/info",
+              "host": ["{{baseUrl}}"],
+              "path": ["actuator", "info"]
+            },
+            "description": "Informations sur l'application"
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints de santé et monitoring (pas besoin de JWT)"
+    },
+    {
+      "name": "📦 Demandes CRUD",
+      "item": [
+        {
+          "name": "1. Créer une Demande",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('demande_id', jsonData.id);",
+                  "    console.log('Demande créée avec ID: ' + jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -44,37 +137,19 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"volume\": 15.5,\n  \"natureMarchandise\": \"Meubles\",\n  \"dateDepart\": \"2024-12-15T10:00:00\",\n  \"adresseDepart\": \"123 Rue Example, Paris, 75001\",\n  \"adresseDestination\": \"456 Avenue Test, Lyon, 69001\"\n}"
+              "raw": "{\n  \"volume\": 15.5,\n  \"natureMarchandise\": \"Meubles de salon\",\n  \"dateDepart\": \"2025-12-15T10:00:00\",\n  \"adresseDepart\": \"123 Rue Mohammed V, Casablanca\",\n  \"adresseDestination\": \"456 Avenue Hassan II, Rabat\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/demandes",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "demandes"]
-            }
+            },
+            "description": "Crée une nouvelle demande de transport. L'ID de la demande créée est automatiquement sauvegardé dans la variable 'demande_id'."
           },
           "response": []
         },
         {
-          "name": "Valider une Demande (Client)",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Authorization",
-                "value": "Bearer {{jwt_token}}",
-                "type": "text"
-              }
-            ],
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/demandes/{{demande_id}}/validation",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "demandes", "{{demande_id}}", "validation"]
-            }
-          },
-          "response": []
-        },
-        {
-          "name": "Récupérer toutes mes Demandes",
+          "name": "2. Lister mes Demandes",
           "request": {
             "method": "GET",
             "header": [
@@ -88,12 +163,13 @@
               "raw": "{{baseUrl}}/api/v1/demandes",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "demandes"]
-            }
+            },
+            "description": "Récupère toutes les demandes du client authentifié"
           },
           "response": []
         },
         {
-          "name": "Récupérer une Demande par ID",
+          "name": "3. Voir une Demande par ID",
           "request": {
             "method": "GET",
             "header": [
@@ -107,12 +183,39 @@
               "raw": "{{baseUrl}}/api/v1/demandes/{{demande_id}}",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "demandes", "{{demande_id}}"]
-            }
+            },
+            "description": "Récupère les détails d'une demande spécifique"
           },
           "response": []
         },
         {
-          "name": "Webhook - Mise à jour Statut Paiement",
+          "name": "4. Valider une Demande (Accepter le devis)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes/{{demande_id}}/validation",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes", "{{demande_id}}", "validation"]
+            },
+            "description": "Le client valide sa demande et accepte le devis proposé"
+          },
+          "response": []
+        }
+      ],
+      "description": "Opérations CRUD sur les demandes (nécessite JWT)"
+    },
+    {
+      "name": "🔄 Webhooks (Internes)",
+      "item": [
+        {
+          "name": "Webhook - Paiement Effectué",
           "request": {
             "method": "PUT",
             "header": [
@@ -130,17 +233,81 @@
               "raw": "{{baseUrl}}/api/v1/demandes/{{demande_id}}/paiement",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "demandes", "{{demande_id}}", "paiement"]
-            }
+            },
+            "description": "Webhook appelé par le Service Paiements pour indiquer qu'une demande a été payée"
+          },
+          "response": []
+        },
+        {
+          "name": "Webhook - Paiement Échoué",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nouveauStatut\": \"ECHOUEE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes/{{demande_id}}/paiement",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes", "{{demande_id}}", "paiement"]
+            },
+            "description": "Webhook pour simuler un paiement échoué"
+          },
+          "response": []
+        },
+        {
+          "name": "Webhook - Paiement en Attente",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nouveauStatut\": \"EN_ATTENTE\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes/{{demande_id}}/paiement",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes", "{{demande_id}}", "paiement"]
+            },
+            "description": "Webhook pour indiquer que le paiement est en attente"
           },
           "response": []
         }
-      ]
+      ],
+      "description": "Endpoints webhooks appelés par d'autres services (pas besoin de JWT)"
     },
     {
-      "name": "Exemples de Demandes",
+      "name": "📝 Exemples de Demandes",
       "item": [
         {
           "name": "Demande - Transport de Meubles",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('demande_id', jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -157,18 +324,33 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"volume\": 20.0,\n  \"natureMarchandise\": \"Meubles - Canapé et table\",\n  \"dateDepart\": \"2024-12-20T09:00:00\",\n  \"adresseDepart\": \"45 Boulevard Haussmann, Paris, 75008\",\n  \"adresseDestination\": \"12 Rue de la République, Marseille, 13001\"\n}"
+              "raw": "{\n  \"volume\": 20.0,\n  \"natureMarchandise\": \"Meubles - Canapé, table basse et armoire\",\n  \"dateDepart\": \"2025-12-20T09:00:00\",\n  \"adresseDepart\": \"45 Boulevard Mohammed V, Casablanca, 20000\",\n  \"adresseDestination\": \"12 Avenue Allal Ben Abdellah, Rabat, 10000\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/demandes",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "demandes"]
-            }
+            },
+            "description": "Exemple: Transport de meubles de Casablanca à Rabat"
           },
           "response": []
         },
         {
           "name": "Demande - Électroménager",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('demande_id', jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -185,18 +367,33 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"volume\": 8.5,\n  \"natureMarchandise\": \"Électroménager - Réfrigérateur et lave-linge\",\n  \"dateDepart\": \"2024-12-18T14:00:00\",\n  \"adresseDepart\": \"30 Avenue des Champs-Élysées, Paris, 75008\",\n  \"adresseDestination\": \"5 Place Bellecour, Lyon, 69002\"\n}"
+              "raw": "{\n  \"volume\": 8.5,\n  \"natureMarchandise\": \"Électroménager - Réfrigérateur et machine à laver\",\n  \"dateDepart\": \"2025-12-18T14:00:00\",\n  \"adresseDepart\": \"30 Rue Ibn Batouta, Marrakech, 40000\",\n  \"adresseDestination\": \"5 Avenue Hassan II, Agadir, 80000\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/demandes",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "demandes"]
-            }
+            },
+            "description": "Exemple: Transport d'électroménager de Marrakech à Agadir"
           },
           "response": []
         },
         {
           "name": "Demande - Matériaux de Construction",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('demande_id', jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
           "request": {
             "method": "POST",
             "header": [
@@ -213,18 +410,145 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"volume\": 35.0,\n  \"natureMarchandise\": \"Matériaux de construction - Briques et ciment\",\n  \"dateDepart\": \"2024-12-22T08:00:00\",\n  \"adresseDepart\": \"Zone Industrielle Nord, Toulouse, 31000\",\n  \"adresseDestination\": \"Chantier du Port, Bordeaux, 33000\"\n}"
+              "raw": "{\n  \"volume\": 35.0,\n  \"natureMarchandise\": \"Matériaux de construction - Briques, ciment et fer\",\n  \"dateDepart\": \"2025-12-22T08:00:00\",\n  \"adresseDepart\": \"Zone Industrielle Ain Sebaa, Casablanca, 20000\",\n  \"adresseDestination\": \"Chantier Hay Riad, Rabat, 10000\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/demandes",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "demandes"]
+            },
+            "description": "Exemple: Transport de matériaux de construction"
+          },
+          "response": []
+        },
+        {
+          "name": "Demande - Produits Alimentaires",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('demande_id', jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
             }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"volume\": 12.0,\n  \"natureMarchandise\": \"Produits alimentaires - Fruits et légumes frais\",\n  \"dateDepart\": \"2025-12-16T06:00:00\",\n  \"adresseDepart\": \"Marché de Gros, Kenitra, 14000\",\n  \"adresseDestination\": \"Supermarché Central, Tanger, 90000\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes"]
+            },
+            "description": "Exemple: Transport de produits alimentaires de Kenitra à Tanger"
+          },
+          "response": []
+        },
+        {
+          "name": "Demande - Équipements Informatiques",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('demande_id', jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"volume\": 5.0,\n  \"natureMarchandise\": \"Équipements informatiques - Serveurs et ordinateurs\",\n  \"dateDepart\": \"2025-12-17T11:00:00\",\n  \"adresseDepart\": \"Technopark, Casablanca, 20000\",\n  \"adresseDestination\": \"Université Al Akhawayn, Ifrane, 53000\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes"]
+            },
+            "description": "Exemple: Transport d'équipements informatiques fragiles"
           },
           "response": []
         }
-      ]
+      ],
+      "description": "Exemples de différents types de demandes de transport"
+    },
+    {
+      "name": "🔒 Tests de Sécurité",
+      "item": [
+        {
+          "name": "Test - Sans Token (doit échouer)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes"]
+            },
+            "description": "Test sans token JWT - doit retourner 403 Forbidden"
+          },
+          "response": []
+        },
+        {
+          "name": "Test - Token Invalide (doit échouer)",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer invalid_token_here",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes"]
+            },
+            "description": "Test avec un token invalide - doit retourner 403 Forbidden"
+          },
+          "response": []
+        }
+      ],
+      "description": "Tests pour vérifier que la sécurité fonctionne correctement"
     }
   ]
 }
-

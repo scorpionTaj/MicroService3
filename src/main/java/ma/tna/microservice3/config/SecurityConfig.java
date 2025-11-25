@@ -31,10 +31,13 @@ public class SecurityConfig {
                 // Désactiver CSRF car on utilise JWT
                 .csrf(AbstractHttpConfigurer::disable)
 
+                // Autoriser les frames pour la console H2
+                .headers(headers -> headers.frameOptions(frameOptions -> frameOptions.disable()))
+
                 // Configurer les autorisations
                 .authorizeHttpRequests(auth -> auth
                         // Routes publiques (pour les tests, actuator, etc.)
-                        .requestMatchers("/actuator/**", "/error").permitAll()
+                        .requestMatchers("/actuator/**", "/error", "/h2-console/**").permitAll()
 
                         // Route webhook pour mise à jour paiement (sécurisée différemment)
                         .requestMatchers("/api/v1/demandes/*/paiement").permitAll()

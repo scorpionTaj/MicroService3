@@ -1,162 +1,212 @@
-# Service 3 : Service Demandes de Transport
+# API Demandes de Transport - Service 3
 
-## Description
-Ce microservice gère les demandes de transport dans le système de logistique. Il permet aux clients de créer des demandes de transport, d'obtenir des devis estimés, et de valider leurs demandes.
+API REST Spring Boot permettant de :
 
-## Technologies Utilisées
-- **Java 25**
-- **Spring Boot 4**
-- **Spring Data JPA** (avec PostgreSQL)
-- **Spring Security 6+** (avec JWT)
-- **Spring WebFlux** (WebClient pour les appels inter-services)
-- **Maven** (gestion des dépendances)
-- **Lombok** (réduction du code boilerplate)
-- **JJWT 0.12.3** (gestion des tokens JWT)
+- Créer des demandes de transport avec calcul automatique du devis
+- Valider les demandes par les clients
+- Gérer le cycle de vie des demandes (création → validation → paiement)
+- Suivre l'historique des demandes par client
 
-## Fonctionnalités Principales
+Base URL : `/api/v1/demandes`
 
-### 1. Gestion des Demandes
-- ✅ Création de demandes de transport
-- ✅ Validation des demandes par les clients
-- ✅ Récupération des demandes (individuelle ou liste)
-- ✅ Mise à jour du statut de paiement (webhook)
+> **Note importante** : Ce service s'intègre avec les Services 4 (Itinéraires), 5 (Tarification), 7 (Paiements) et 8 (Matching) pour offrir une expérience complète.
 
-### 2. Intégrations Inter-Services
-- **Service 4 - Itinéraires** : Calcul automatique de l'itinéraire optimal
-- **Service 5 - Tarification** : Calcul du devis estimé
-- **Service 7 - Paiements** : Initiation des paiements après validation
-- **Service 8 - Matching** : Recherche de transporteurs disponibles
+## Sommaire
 
-### 3. Sécurité
-- Authentification par JWT (tokens générés par le Service 1 - Utilisateurs)
-- Protection des endpoints avec Spring Security
-- Validation des autorisations (un client ne peut accéder qu'à ses propres demandes)
+- [Quick Start](#quick-start)
+- [Endpoints](#endpoints)
+- [Modèles (DTOs)](#modèles-dtos)
+- [Exemples de requêtes](#exemples-de-requêtes)
+- [Authentification JWT](#authentification-jwt)
+- [Health Check](#health-check)
+- [Configuration](#configuration)
+- [Docker](#docker)
 
-## Structure du Projet
+---
 
-```
-src/main/java/ma/tna/microservice3/
-├── config/
-│   ├── SecurityConfig.java           # Configuration Spring Security
-│   └── WebClientConfig.java          # Configuration WebClient
-├── controller/
-│   └── DemandeController.java        # Endpoints REST
-├── dto/
-│   ├── DemandeRequestDTO.java        # DTO pour créer une demande
-│   ├── DemandeResponseDTO.java       # DTO de réponse
-│   ├── PaiementStatusUpdateDTO.java  # DTO pour mise à jour paiement
-│   ├── ItineraireResponseDTO.java    # DTO itinéraire
-│   └── TarifResponseDTO.java         # DTO tarif
-├── exception/
-│   ├── ResourceNotFoundException.java
-│   ├── UnauthorizedException.java
-│   └── GlobalExceptionHandler.java   # Gestion globale des erreurs
-├── mapper/
-│   └── DemandeMapper.java            # Conversion Entity <-> DTO
-├── model/
-│   ├── Demande.java                  # Entité JPA
-│   ├── StatutValidation.java         # Enum des statuts de validation
-│   └── StatutPaiement.java           # Enum des statuts de paiement
-├── repository/
-│   └── DemandeRepository.java        # Repository Spring Data JPA
-├── security/
-│   └── JwtAuthFilter.java            # Filtre d'authentification JWT
-├── service/
-│   ├── DemandeService.java           # Interface du service
-│   └── DemandeServiceImpl.java       # Implémentation du service
-├── util/
-│   └── JwtUtil.java                  # Utilitaire JWT
-└── MicroService3Application.java     # Classe principale
-```
+## Quick Start
 
-## Configuration
+### 1. Lancer la base de données
 
-### Base de Données (PostgreSQL)
-
-**⚠️ IMPORTANT** : Voir le guide détaillé **[DATABASE_SETUP.md](DATABASE_SETUP.md)** pour la configuration complète.
-
-#### Méthode Rapide (Automatique)
-Utilisez le script PowerShell fourni :
 ```bash
-.\setup-database.ps1
+docker-compose up -d postgres-demandes
 ```
 
-#### Méthode Simple (Manuel)
-1. Créez la base de données :
-```sql
-CREATE DATABASE demandes_db;
-```
+### 2. Lancer l'application
 
-2. Exécutez le script SQL :
 ```bash
-psql -U postgres -d demandes_db -f src\main\resources\schema.sql
+./mvnw spring-boot:run
 ```
 
-#### Méthode Ultra-Simple (Hibernate)
-Créez juste la base de données et laissez Hibernate créer les tables :
-```sql
-CREATE DATABASE demandes_db;
-```
-Puis démarrez l'application avec `.\mvnw.cmd spring-boot:run`
+### 3. Vérifier que ça fonctionne
 
-### Application Properties
-Mettez à jour `src/main/resources/application.properties` avec vos paramètres :
-
-```properties
-# PostgreSQL
-spring.datasource.url=jdbc:postgresql://localhost:5432/demandes_db
-spring.datasource.username=votre_username
-spring.datasource.password=votre_password
-
-# JWT
-jwt.secret=votre-secret-key-min-256-bits-long
-jwt.expiration=86400000
-
-# URLs des autres services
-service.url.itineraires=http://localhost:8084/api/v1/itineraires
-service.url.tarification=http://localhost:8085/api/v1/tarifs
-service.url.matching=http://localhost:8088/api/v1/matching
-service.url.paiements=http://localhost:8087/api/v1/paiements
+```bash
+curl http://localhost:8083/actuator/health
 ```
 
-## API Endpoints
+### 4. Importer la collection Postman
 
-### Créer une Demande
+Importez `Service3_Demandes_Transport.postman_collection.json` dans Postman - le token JWT est déjà configuré !
+
+---
+
+## Endpoints
+
+| Méthode | Endpoint                           | Description                             | Authentification |
+| ------- | ---------------------------------- | --------------------------------------- | ---------------- |
+| POST    | `/api/v1/demandes`                 | Créer une nouvelle demande de transport | JWT requis       |
+| GET     | `/api/v1/demandes`                 | Lister toutes mes demandes              | JWT requis       |
+| GET     | `/api/v1/demandes/{id}`            | Récupérer une demande par ID            | JWT requis       |
+| PUT     | `/api/v1/demandes/{id}/validation` | Valider une demande (accepter le devis) | JWT requis       |
+| PUT     | `/api/v1/demandes/{id}/paiement`   | Webhook - Mise à jour statut paiement   | Non (interne)    |
+| GET     | `/actuator/health`                 | Health check                            | Non              |
+| GET     | `/actuator/health/liveness`        | Probe Kubernetes liveness               | Non              |
+| GET     | `/actuator/health/readiness`       | Probe Kubernetes readiness              | Non              |
+
+---
+
+## Modèles (DTOs)
+
+### `DemandeRequestDTO` (création de demande)
+
+```json
+{
+  "volume": 15.5,
+  "natureMarchandise": "Meubles de salon",
+  "dateDepart": "2025-12-15T10:00:00",
+  "adresseDepart": "123 Rue Mohammed V, Casablanca",
+  "adresseDestination": "456 Avenue Hassan II, Rabat"
+}
+```
+
+| Champ                | Type          | Obligatoire | Validation              |
+| -------------------- | ------------- | ----------- | ----------------------- |
+| `volume`             | Double        | ✅          | Doit être positif       |
+| `natureMarchandise`  | String        | ✅          | Non vide                |
+| `dateDepart`         | LocalDateTime | ✅          | Doit être dans le futur |
+| `adresseDepart`      | String        | ✅          | Non vide                |
+| `adresseDestination` | String        | ✅          | Non vide                |
+
+### `DemandeResponseDTO` (réponse)
+
+```json
+{
+  "id": 1,
+  "clientId": 1,
+  "volume": 15.5,
+  "natureMarchandise": "Meubles de salon",
+  "dateDepart": "2025-12-15T10:00:00",
+  "adresseDepart": "123 Rue Mohammed V, Casablanca",
+  "adresseDestination": "456 Avenue Hassan II, Rabat",
+  "statutValidation": "EN_ATTENTE_CLIENT",
+  "statutPaiement": "EN_ATTENTE",
+  "devisEstime": 1500.0,
+  "itineraireAssocieId": 42,
+  "groupeId": null,
+  "dateCreation": "2025-11-25T22:30:00",
+  "dateModification": "2025-11-25T22:30:00"
+}
+```
+
+### `PaiementStatusUpdateDTO` (webhook paiement)
+
+```json
+{
+  "nouveauStatut": "PAYEE"
+}
+```
+
+### Énumérations
+
+#### StatutValidation
+
+| Valeur                | Description                             |
+| --------------------- | --------------------------------------- |
+| `EN_ATTENTE_CLIENT`   | Demande créée, en attente de validation |
+| `VALIDEE_CLIENT`      | Demande validée par le client           |
+| `VALIDEE_PRESTATAIRE` | Validée par le prestataire              |
+| `TERMINEE`            | Demande terminée                        |
+| `ANNULEE`             | Demande annulée                         |
+
+#### StatutPaiement
+
+| Valeur       | Description         |
+| ------------ | ------------------- |
+| `EN_ATTENTE` | Paiement en attente |
+| `PAYEE`      | Paiement effectué   |
+| `REMBOURSEE` | Paiement remboursé  |
+| `ECHEC`      | Paiement échoué     |
+
+---
+
+## Exemples de requêtes
+
+### 1. Créer une demande de transport
+
 ```http
 POST /api/v1/demandes
-Authorization: Bearer {jwt_token}
+Authorization: Bearer <jwt_token>
 Content-Type: application/json
 
 {
   "volume": 15.5,
-  "natureMarchandise": "Meubles",
-  "dateDepart": "2024-12-15T10:00:00",
-  "adresseDepart": "123 Rue Example, Paris",
-  "adresseDestination": "456 Avenue Test, Lyon"
+  "natureMarchandise": "Meubles de salon",
+  "dateDepart": "2025-12-15T10:00:00",
+  "adresseDepart": "123 Rue Mohammed V, Casablanca",
+  "adresseDestination": "456 Avenue Hassan II, Rabat"
 }
 ```
 
-### Valider une Demande (Client)
-```http
-PUT /api/v1/demandes/{id}/validation
-Authorization: Bearer {jwt_token}
+**Réponse (201 Created):**
+
+```json
+{
+  "id": 1,
+  "clientId": 1,
+  "volume": 15.5,
+  "natureMarchandise": "Meubles de salon",
+  "statutValidation": "EN_ATTENTE_CLIENT",
+  "statutPaiement": "EN_ATTENTE",
+  "devisEstime": 1500.00,
+  ...
+}
 ```
 
-### Récupérer toutes mes Demandes
+### 2. Lister mes demandes
+
 ```http
 GET /api/v1/demandes
-Authorization: Bearer {jwt_token}
+Authorization: Bearer <jwt_token>
 ```
 
-### Récupérer une Demande par ID
+### 3. Voir une demande spécifique
+
 ```http
-GET /api/v1/demandes/{id}
-Authorization: Bearer {jwt_token}
+GET /api/v1/demandes/1
+Authorization: Bearer <jwt_token>
 ```
 
-### Webhook - Mise à jour Statut Paiement
+### 4. Valider une demande (accepter le devis)
+
 ```http
-PUT /api/v1/demandes/{id}/paiement
+PUT /api/v1/demandes/1/validation
+Authorization: Bearer <jwt_token>
+```
+
+**Réponse (200 OK):**
+
+```json
+{
+  "id": 1,
+  "statutValidation": "VALIDEE_CLIENT",
+  ...
+}
+```
+
+### 5. Webhook - Mise à jour statut paiement
+
+```http
+PUT /api/v1/demandes/1/paiement
 Content-Type: application/json
 
 {
@@ -164,148 +214,210 @@ Content-Type: application/json
 }
 ```
 
-## Modèle de Données
+---
 
-### Entité Demande
-```java
-- id: Long (PK)
-- clientId: Long (ID du Service 1)
-- volume: Double
-- natureMarchandise: String
-- dateDepart: LocalDateTime
-- adresseDepart: String
-- adresseDestination: String
-- statutValidation: StatutValidation (EN_ATTENTE_CLIENT, VALIDEE_CLIENT, etc.)
-- statutPaiement: StatutPaiement (EN_ATTENTE, PAYEE, REMBOURSEE)
-- itineraireAssocieId: Long (ID du Service 4)
-- groupeId: Long (pour le regroupement)
-- devisEstime: BigDecimal
-- dateCreation: LocalDateTime
-- dateModification: LocalDateTime
+## Authentification JWT
+
+### Tokens de test (valides 1 an)
+
+**Client (userId=1):**
+
+```
+eyJhbGciOiJIUzM4NCJ9.eyJyb2xlIjoiQ0xJRU5UIiwidXNlcklkIjoxLCJzdWIiOiIxIiwiaWF0IjoxNzY0MTA4NjQ4LCJleHAiOjE3OTU2NDQ2NDh9.MsAIo8mq0sGFYTZ5XNK8oHU-fcQhZNCRWIJ_CxTtB2sau88MBHz4JiO6-DhhqHnl
 ```
 
-## Compilation et Exécution
+**Admin (userId=2):**
 
-### Compiler le projet
+```
+eyJhbGciOiJIUzM4NCJ9.eyJyb2xlIjoiQURNSU4iLCJ1c2VySWQiOjIsInN1YiI6IjIiLCJpYXQiOjE3NjQxMDg2NDksImV4cCI6MTc5NTY0NDY0OX0.8PeDf_FMo6_e7sIWNVV-UeNXzrM4qobpQikw0jBBMFsQMomi2e-bN8PX-QFlggu9
+```
+
+**Transporteur (userId=3):**
+
+```
+eyJhbGciOiJIUzM4NCJ9.eyJyb2xlIjoiVFJBTlNQT1JURVVSIiwidXNlcklkIjozLCJzdWIiOiIzIiwiaWF0IjoxNzY0MTA4NjQ5LCJleHAiOjE3OTU2NDQ2NDl9.KKNKKVgXw0eHXsS3rErM1eDyyLN-2SZjUW6tJrJ0gA_rD7Uuus3Zk3Xjt1MDX48d
+```
+
+### Générer de nouveaux tokens
+
 ```bash
-./mvnw clean compile
+./mvnw compile exec:java "-Dexec.mainClass=ma.tna.microservice3.util.JwtTokenGenerator"
 ```
+
+### Format du header
+
+```
+Authorization: Bearer <token>
+```
+
+### Payload JWT attendu
+
+```json
+{
+  "sub": "1",
+  "userId": 1,
+  "role": "CLIENT",
+  "iat": 1764108648,
+  "exp": 1795644648
+}
+```
+
+---
+
+## Health Check
+
+### Vérifier la santé de l'application
+
+```http
+GET /actuator/health
+```
+
+**Réponse:**
+
+```json
+{
+  "status": "UP",
+  "groups": ["liveness", "readiness"]
+}
+```
+
+### Probes Kubernetes
+
+```http
+GET /actuator/health/liveness   → Application vivante ?
+GET /actuator/health/readiness  → Application prête ?
+```
+
+---
+
+## Configuration
+
+### Variables d'environnement
+
+| Variable                     | Description                 | Valeur par défaut                              |
+| ---------------------------- | --------------------------- | ---------------------------------------------- |
+| `SERVER_PORT`                | Port de l'application       | `8083`                                         |
+| `SPRING_DATASOURCE_URL`      | URL de connexion PostgreSQL | `jdbc:postgresql://localhost:5433/demandes_db` |
+| `SPRING_DATASOURCE_USERNAME` | Utilisateur PostgreSQL      | `demandes_user`                                |
+| `SPRING_DATASOURCE_PASSWORD` | Mot de passe PostgreSQL     | `demandes_password`                            |
+| `JWT_SECRET`                 | Clé secrète JWT (Base64)    | Voir `application.properties`                  |
+| `SERVICE_URL_ITINERAIRES`    | URL Service Itinéraires     | `http://localhost:8084/api/v1/itineraires`     |
+| `SERVICE_URL_TARIFICATION`   | URL Service Tarification    | `http://localhost:8085/api/v1/tarifs`          |
+| `SERVICE_URL_PAIEMENTS`      | URL Service Paiements       | `http://localhost:8087/api/v1/paiements`       |
+| `SERVICE_URL_MATCHING`       | URL Service Matching        | `http://localhost:8088/api/v1/matching`        |
+
+---
+
+## Docker
+
+### Lancer uniquement la base de données
+
+```bash
+docker-compose up -d postgres-demandes
+```
+
+### Lancer tout (application + base de données)
+
+```bash
+docker-compose up --build -d
+```
+
+### Voir les logs
+
+```bash
+docker-compose logs -f service-demandes
+```
+
+### Arrêter
+
+```bash
+docker-compose down
+```
+
+### Accéder à PostgreSQL
+
+```bash
+docker exec -it demandes_db_ms3 psql -U demandes_user -d demandes_db
+```
+
+---
+
+## Architecture
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   Service 1     │     │   Service 4     │     │   Service 5     │
+│  (Utilisateurs) │     │  (Itinéraires)  │     │ (Tarification)  │
+│     :8081       │     │     :8084       │     │     :8085       │
+└────────┬────────┘     └────────┬────────┘     └────────┬────────┘
+         │                       │                       │
+         │ JWT Token             │ Calcul Route          │ Calcul Devis
+         ▼                       ▼                       ▼
+┌────────────────────────────────────────────────────────────────────┐
+│                        SERVICE 3 - DEMANDES                        │
+│                           (Ce Service)                             │
+│                             :8083                                  │
+└────────────────────────────────────────────────────────────────────┘
+         │                       │
+         │ Init Paiement         │ Matching Transporteur
+         ▼                       ▼
+┌─────────────────┐     ┌─────────────────┐
+│   Service 7     │     │   Service 8     │
+│   (Paiements)   │     │   (Matching)    │
+│     :8087       │     │     :8088       │
+└─────────────────┘     └─────────────────┘
+```
+
+---
+
+## Tests
 
 ### Exécuter les tests
+
 ```bash
 ./mvnw test
 ```
 
-### Lancer l'application
-```bash
-./mvnw spring-boot:run
+### Résultat attendu
+
+```
+Tests run: 13, Failures: 0, Errors: 0, Skipped: 0
+BUILD SUCCESS
 ```
 
-L'application démarre sur le port **8083**.
+---
 
-## Dépendances Principales
+## Collection Postman
 
-```xml
-<!-- Spring Boot Starters -->
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-web</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-webflux</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-data-jpa</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-security</artifactId>
-</dependency>
-<dependency>
-    <groupId>org.springframework.boot</groupId>
-    <artifactId>spring-boot-starter-validation</artifactId>
-</dependency>
+Le fichier `Service3_Demandes_Transport.postman_collection.json` contient :
 
-<!-- PostgreSQL -->
-<dependency>
-    <groupId>org.postgresql</groupId>
-    <artifactId>postgresql</artifactId>
-</dependency>
+- 🏥 **Health & Status** - Endpoints de monitoring
+- 📦 **Demandes CRUD** - Créer, lister, voir, valider
+- 🔄 **Webhooks** - Mise à jour statut paiement
+- 📝 **Exemples** - Différents types de demandes
+- 🔒 **Tests Sécurité** - Vérification authentification
 
-<!-- JWT -->
-<dependency>
-    <groupId>io.jsonwebtoken</groupId>
-    <artifactId>jjwt-api</artifactId>
-    <version>0.12.3</version>
-</dependency>
+**Le token JWT est pré-configuré** - importez et testez directement !
 
-<!-- Lombok -->
-<dependency>
-    <groupId>org.projectlombok</groupId>
-    <artifactId>lombok</artifactId>
-</dependency>
-```
+---
 
-## Flux de Traitement d'une Demande
+## Technologies
 
-1. **Création de la Demande**
-   - Client envoie une demande avec les détails du transport
-   - Le service sauvegarde la demande (statut: EN_ATTENTE_CLIENT)
-   - Appel asynchrone au Service Itinéraires pour calculer le trajet
-   - Appel asynchrone au Service Tarification pour obtenir un devis
-   - Mise à jour de la demande avec l'itinéraire et le devis
-   - Retour de la demande complète au client
+| Technologie     | Version | Usage                 |
+| --------------- | ------- | --------------------- |
+| Java            | 21      | Langage               |
+| Spring Boot     | 3.5.8   | Framework             |
+| Spring Security | 6.x     | Authentification JWT  |
+| Spring Data JPA | 3.x     | Accès base de données |
+| PostgreSQL      | 16      | Base de données       |
+| Docker          | -       | Containerisation      |
+| Maven           | 3.9+    | Build                 |
+| JJWT            | 0.12.3  | Gestion tokens JWT    |
+| Lombok          | -       | Réduction boilerplate |
 
-2. **Validation de la Demande**
-   - Client valide la demande (accepte le devis)
-   - Mise à jour du statut à VALIDEE_CLIENT
-   - Appel asynchrone au Service Matching pour trouver un transporteur
-   - Appel asynchrone au Service Paiements pour initier le paiement
-
-3. **Mise à jour du Paiement**
-   - Le Service Paiements notifie via webhook
-   - Mise à jour du statutPaiement (PAYEE, REMBOURSEE, etc.)
-
-## Sécurité JWT
-
-Le service utilise un filtre JWT (`JwtAuthFilter`) qui :
-- Intercepte chaque requête
-- Vérifie le token JWT dans le header `Authorization: Bearer {token}`
-- Valide le token (signature, expiration)
-- Extrait les informations (userId, role)
-- Peuple le `SecurityContext` pour l'autorisation
-
-## Notes de Développement
-
-### Utilisation des Java Records
-Les DTOs utilisent des **Java Records** (Java 14+) pour l'immuabilité et la concision :
-```java
-public record DemandeRequestDTO(
-    @NotNull Double volume,
-    @NotBlank String natureMarchandise,
-    // ...
-) {}
-```
-
-### WebClient (Non-Bloquant)
-Les appels inter-services utilisent `WebClient` de Spring WebFlux pour des performances optimales :
-```java
-webClient.post()
-    .uri(serviceUrl)
-    .bodyValue(request)
-    .retrieve()
-    .bodyToMono(ResponseDTO.class)
-    .block(); // ou .subscribe() pour vraiment asynchrone
-```
-
-### Gestion des Erreurs
-Un `GlobalExceptionHandler` capture toutes les exceptions et renvoie des réponses HTTP appropriées.
+---
 
 ## Auteur
-Développé dans le cadre d'une architecture microservices pour un système de gestion de transport.
 
-## Licence
-Ce projet est destiné à un usage éducatif et professionnel.
-
+**MicroService3** - Service Demandes de Transport  
+Fait partie de l'architecture microservices de Transport Maroc.

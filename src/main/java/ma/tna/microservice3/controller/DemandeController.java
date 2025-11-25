@@ -21,15 +21,15 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/demandes")
 public class DemandeController {
-    
+
     private static final Logger logger = LoggerFactory.getLogger(DemandeController.class);
-    
+
     private final DemandeService demandeService;
-    
+
     public DemandeController(DemandeService demandeService) {
         this.demandeService = demandeService;
     }
-    
+
     /**
      * Crée une nouvelle demande de transport
      * Accessible uniquement aux clients authentifiés
@@ -40,12 +40,12 @@ public class DemandeController {
     ) {
         Long userId = getCurrentUserId();
         logger.info("Création d'une demande par le client ID: {}", userId);
-        
+
         DemandeResponseDTO response = demandeService.creerDemande(requestDTO, userId);
-        
+
         return ResponseEntity.status(HttpStatus.CREATED).body(response);
     }
-    
+
     /**
      * Valide une demande (par le client)
      * Le client confirme qu'il accepte le devis
@@ -56,12 +56,12 @@ public class DemandeController {
     ) {
         Long userId = getCurrentUserId();
         logger.info("Validation de la demande ID: {} par le client ID: {}", id, userId);
-        
+
         DemandeResponseDTO response = demandeService.validerDemandeClient(id, userId);
-        
+
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * Récupère toutes les demandes du client authentifié
      */
@@ -69,12 +69,12 @@ public class DemandeController {
     public ResponseEntity<List<DemandeResponseDTO>> getMesDemandesClient() {
         Long userId = getCurrentUserId();
         logger.info("Récupération des demandes du client ID: {}", userId);
-        
+
         List<DemandeResponseDTO> demandes = demandeService.getDemandesByClient(userId);
-        
+
         return ResponseEntity.ok(demandes);
     }
-    
+
     /**
      * Récupère une demande spécifique par son ID
      */
@@ -84,12 +84,12 @@ public class DemandeController {
     ) {
         Long userId = getCurrentUserId();
         logger.info("Récupération de la demande ID: {} par l'utilisateur ID: {}", id, userId);
-        
+
         DemandeResponseDTO response = demandeService.getDemandeById(id, userId);
-        
+
         return ResponseEntity.ok(response);
     }
-    
+
     /**
      * Webhook pour la mise à jour du statut de paiement
      * Appelé par le Service Paiements
@@ -101,22 +101,39 @@ public class DemandeController {
             @Valid @RequestBody PaiementStatusUpdateDTO statusUpdateDTO
     ) {
         logger.info("Mise à jour du statut de paiement pour la demande ID: {}", id);
-        
+
         demandeService.mettreAJourStatutPaiement(id, statusUpdateDTO);
-        
+
         return ResponseEntity.ok().build();
     }
-    
+
     /**
      * Récupère l'ID de l'utilisateur actuellement authentifié
      */
     private Long getCurrentUserId() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
-        
-        if (authentication != null && authentication.getPrincipal() instanceof Long) {
-            return (Long) authentication.getPrincipal();
+
+        if (authentication != null) {
+            Object principal = authentication.getPrincipal();
+
+            if (principal instanceof Long) {
+                return (Long) principal;
+            } else if (principal instanceof String) {
+                try {
+                    return Long.parseLong((String) principal);
+                } catch (NumberFormatException e) {
+                    logger.warn("Impossible de convertir le principal (String) en Long: {}", principal);
+                }
+            } else if (principal instanceof org.springframework.security.core.userdetails.User) {
+                String username = ((org.springframework.security.core.userdetails.User) principal).getUsername();
+                try {
+                    return Long.parseLong(username);
+                } catch (NumberFormatException e) {
+                    logger.warn("Impossible de convertir le username en Long: {}", username);
+                }
+            }
         }
-        
+
         throw new RuntimeException("Utilisateur non authentifié");
     }
 }
