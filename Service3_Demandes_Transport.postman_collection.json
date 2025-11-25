@@ -251,7 +251,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"nouveauStatut\": \"ECHOUEE\"\n}"
+              "raw": "{\n  \"nouveauStatut\": \"ECHEC\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/demandes/{{demande_id}}/paiement",

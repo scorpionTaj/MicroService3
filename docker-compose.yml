@@ -39,8 +39,8 @@ services:
       SPRING_JPA_HIBERNATE_DDL_AUTO: update
       SPRING_JPA_SHOW_SQL: "true"
 
-      # Configuration JWT (à synchroniser avec le Service 1)
-      JWT_SECRET: "your-secret-key-min-256-bits-long-change-this-in-production-should-be-same-as-service1"
+      # Configuration JWT (Base64 encoded - doit correspondre à application.properties)
+      JWT_SECRET: "eW91ci1zZWNyZXQta2V5LW1pbi0yNTYtYml0cy1sb25nLWNoYW5nZS10aGlzLWluLXByb2R1Y3Rpb24="
       JWT_EXPIRATION: 86400000
 
       # URLs des autres services

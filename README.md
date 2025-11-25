@@ -319,25 +319,81 @@ docker-compose up -d postgres-demandes
 ### Lancer tout (application + base de données)
 
 ```bash
+docker-compose up -d
+```
+
+### Build et lancer (première fois ou après modifications)
+
+```bash
 docker-compose up --build -d
+```
+
+### Rebuild sans cache (si problèmes de cache)
+
+```bash
+docker-compose build --no-cache service-demandes
+docker-compose up -d
+```
+
+### Redémarrer les services
+
+```bash
+# Redémarrer tous les services
+docker-compose restart
+
+# Redémarrer uniquement l'application
+docker-compose restart service-demandes
+```
+
+### Arrêter les services
+
+```bash
+# Arrêter (garde les conteneurs)
+docker-compose stop
+
+# Arrêter et supprimer les conteneurs
+docker-compose down
+
+# Arrêter et supprimer tout (volumes inclus)
+docker-compose down -v
 ```
 
 ### Voir les logs
 
 ```bash
+# Tous les logs
+docker-compose logs -f
+
+# Logs de l'application uniquement
 docker-compose logs -f service-demandes
+
+# Dernières 100 lignes
+docker-compose logs --tail=100 service-demandes
 ```
 
-### Arrêter
+### Vérifier l'état des conteneurs
 
 ```bash
-docker-compose down
+docker-compose ps
 ```
 
 ### Accéder à PostgreSQL
 
 ```bash
 docker exec -it demandes_db_ms3 psql -U demandes_user -d demandes_db
+```
+
+### Commandes utiles
+
+```bash
+# Voir les images construites
+docker images | grep microservice3
+
+# Supprimer l'image pour forcer un rebuild complet
+docker rmi microservice3-service-demandes
+
+# Nettoyer les ressources Docker non utilisées
+docker system prune -f
 ```
 
 ---
