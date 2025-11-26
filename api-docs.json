@@ -1,0 +1,316 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "MicroService 3 - Service Demandes Transport API",
+    "description": "API REST pour la gestion des demandes de transport",
+    "version": "1.0.0",
+    "contact": {
+      "name": "TNA Transport",
+      "email": "support@tna.ma"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8083",
+      "description": "Serveur de développement local"
+    }
+  ],
+  "security": [
+    {
+      "bearerAuth": []
+    }
+  ],
+  "paths": {
+    "/api/v1/demandes": {
+      "get": {
+        "summary": "Récupérer toutes les demandes du client",
+        "description": "Récupère toutes les demandes de transport du client authentifié",
+        "tags": ["Demandes"],
+        "security": [{ "bearerAuth": [] }],
+        "responses": {
+          "200": {
+            "description": "Liste des demandes récupérée avec succès",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "$ref": "#/components/schemas/DemandeResponse" }
+                }
+              }
+            }
+          },
+          "401": { "description": "Non authentifié" },
+          "403": { "description": "Accès refusé" }
+        }
+      },
+      "post": {
+        "summary": "Créer une nouvelle demande de transport",
+        "description": "Crée une nouvelle demande de transport pour le client authentifié",
+        "tags": ["Demandes"],
+        "security": [{ "bearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/DemandeRequest" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Demande créée avec succès",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DemandeResponse" }
+              }
+            }
+          },
+          "400": { "description": "Données de requête invalides" },
+          "401": { "description": "Non authentifié" }
+        }
+      }
+    },
+    "/api/v1/demandes/{id}": {
+      "get": {
+        "summary": "Récupérer une demande par ID",
+        "description": "Récupère une demande de transport spécifique par son ID",
+        "tags": ["Demandes"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID de la demande",
+            "schema": { "type": "integer", "format": "int64" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Demande récupérée avec succès",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DemandeResponse" }
+              }
+            }
+          },
+          "401": { "description": "Non authentifié" },
+          "403": { "description": "Accès refusé" },
+          "404": { "description": "Demande non trouvée" }
+        }
+      }
+    },
+    "/api/v1/demandes/{id}/validation": {
+      "put": {
+        "summary": "Valider une demande",
+        "description": "Le client confirme qu'il accepte le devis de la demande",
+        "tags": ["Demandes"],
+        "security": [{ "bearerAuth": [] }],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID de la demande à valider",
+            "schema": { "type": "integer", "format": "int64" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Demande validée avec succès",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/DemandeResponse" }
+              }
+            }
+          },
+          "401": { "description": "Non authentifié" },
+          "403": { "description": "Accès refusé" },
+          "404": { "description": "Demande non trouvée" }
+        }
+      }
+    },
+    "/api/v1/demandes/{id}/paiement": {
+      "put": {
+        "summary": "Mettre à jour le statut de paiement",
+        "description": "Webhook appelé par le Service Paiements pour mettre à jour le statut de paiement",
+        "tags": ["Paiement Webhook"],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "description": "ID de la demande",
+            "schema": { "type": "integer", "format": "int64" }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/PaiementStatusUpdate" }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Statut de paiement mis à jour avec succès" },
+          "400": { "description": "Données de requête invalides" },
+          "404": { "description": "Demande non trouvée" }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "bearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "description": "Token JWT obtenu depuis le service d'authentification"
+      }
+    },
+    "schemas": {
+      "DemandeRequest": {
+        "type": "object",
+        "required": [
+          "volume",
+          "natureMarchandise",
+          "dateDepart",
+          "adresseDepart",
+          "adresseDestination"
+        ],
+        "properties": {
+          "volume": {
+            "type": "number",
+            "format": "double",
+            "minimum": 0,
+            "exclusiveMinimum": true,
+            "description": "Volume de la marchandise (doit être positif)",
+            "example": 25.5
+          },
+          "natureMarchandise": {
+            "type": "string",
+            "description": "Nature de la marchandise à transporter",
+            "example": "Matériaux de construction"
+          },
+          "dateDepart": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date et heure de départ (doit être dans le futur)",
+            "example": "2025-12-15T08:00:00"
+          },
+          "adresseDepart": {
+            "type": "string",
+            "description": "Adresse de départ",
+            "example": "123 Rue Mohammed V, Casablanca"
+          },
+          "adresseDestination": {
+            "type": "string",
+            "description": "Adresse de destination",
+            "example": "456 Avenue Hassan II, Rabat"
+          }
+        }
+      },
+      "DemandeResponse": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "format": "int64",
+            "description": "Identifiant unique de la demande",
+            "example": 1
+          },
+          "clientId": {
+            "type": "integer",
+            "format": "int64",
+            "description": "ID du client",
+            "example": 42
+          },
+          "volume": {
+            "type": "number",
+            "format": "double",
+            "description": "Volume de la marchandise",
+            "example": 25.5
+          },
+          "natureMarchandise": {
+            "type": "string",
+            "description": "Nature de la marchandise",
+            "example": "Matériaux de construction"
+          },
+          "dateDepart": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date et heure de départ",
+            "example": "2025-12-15T08:00:00"
+          },
+          "adresseDepart": {
+            "type": "string",
+            "description": "Adresse de départ",
+            "example": "123 Rue Mohammed V, Casablanca"
+          },
+          "adresseDestination": {
+            "type": "string",
+            "description": "Adresse de destination",
+            "example": "456 Avenue Hassan II, Rabat"
+          },
+          "statutValidation": {
+            "type": "string",
+            "description": "Statut de validation de la demande",
+            "enum": ["EN_ATTENTE", "VALIDEE", "REFUSEE"],
+            "example": "EN_ATTENTE"
+          },
+          "statutPaiement": {
+            "type": "string",
+            "description": "Statut de paiement de la demande",
+            "enum": ["EN_ATTENTE", "PAYEE", "REMBOURSEE"],
+            "example": "EN_ATTENTE"
+          },
+          "devisEstime": {
+            "type": "number",
+            "format": "decimal",
+            "description": "Devis estimé en MAD",
+            "example": 1500.0
+          },
+          "itineraireAssocieId": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "ID de l'itinéraire associé",
+            "example": 5
+          },
+          "groupeId": {
+            "type": "integer",
+            "format": "int64",
+            "nullable": true,
+            "description": "ID du groupe de transport",
+            "example": 3
+          },
+          "dateCreation": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de création de la demande",
+            "example": "2025-11-26T10:30:00"
+          },
+          "dateModification": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Date de dernière modification",
+            "example": "2025-11-26T14:45:00"
+          }
+        }
+      },
+      "PaiementStatusUpdate": {
+        "type": "object",
+        "required": ["nouveauStatut"],
+        "properties": {
+          "nouveauStatut": {
+            "type": "string",
+            "description": "Nouveau statut de paiement",
+            "enum": ["EN_ATTENTE", "PAYEE", "REMBOURSEE"],
+            "example": "PAYEE"
+          }
+        }
+      }
+    }
+  }
+}
