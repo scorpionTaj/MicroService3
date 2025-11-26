@@ -6,7 +6,6 @@ import io.swagger.v3.oas.annotations.media.Content;
 import io.swagger.v3.oas.annotations.media.Schema;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
-import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import ma.tna.microservice3.dto.DemandeRequestDTO;
@@ -29,7 +28,6 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/demandes")
 @Tag(name = "Demandes de Transport", description = "API de gestion des demandes de transport")
-@SecurityRequirement(name = "bearerAuth")
 public class DemandeController {
 
     private static final Logger logger = LoggerFactory.getLogger(DemandeController.class);
@@ -46,7 +44,8 @@ public class DemandeController {
      */
     @Operation(
         summary = "Créer une nouvelle demande de transport",
-        description = "Crée une nouvelle demande de transport pour le client authentifié avec calcul automatique du devis"
+        description = "Crée une nouvelle demande de transport pour le client authentifié avec calcul automatique du devis",
+        security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearerAuth")}
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "201", description = "Demande créée avec succès",
@@ -72,7 +71,8 @@ public class DemandeController {
      */
     @Operation(
         summary = "Valider une demande",
-        description = "Le client confirme qu'il accepte le devis de la demande"
+        description = "Le client confirme qu'il accepte le devis de la demande",
+        security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearerAuth")}
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Demande validée avec succès",
@@ -99,7 +99,8 @@ public class DemandeController {
      */
     @Operation(
         summary = "Récupérer toutes les demandes du client",
-        description = "Retourne la liste de toutes les demandes de transport du client authentifié"
+        description = "Retourne la liste de toutes les demandes de transport du client authentifié",
+        security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearerAuth")}
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Liste des demandes récupérée avec succès"),
@@ -120,7 +121,8 @@ public class DemandeController {
      */
     @Operation(
         summary = "Récupérer une demande par ID",
-        description = "Retourne les détails complets d'une demande spécifique"
+        description = "Retourne les détails complets d'une demande spécifique",
+        security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearerAuth")}
     )
     @ApiResponses(value = {
         @ApiResponse(responseCode = "200", description = "Demande récupérée avec succès",
