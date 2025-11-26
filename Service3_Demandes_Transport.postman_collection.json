@@ -2,13 +2,13 @@
   "info": {
     "name": "Service 3 - Demandes de Transport (Complete)",
     "_postman_id": "service3-demandes-transport-complete",
-    "description": "Collection Postman complète pour tester le Service 3 : Demandes de Transport\n\n## Instructions\n1. Le token JWT de test est déjà configuré et valide jusqu'en 2030\n2. Lancez d'abord 'Health Check' pour vérifier que le service fonctionne\n3. Créez une demande avec 'Créer une Demande'\n4. Copiez l'ID de la demande créée et mettez-le dans la variable 'demande_id'\n5. Testez les autres endpoints",
+    "description": "Collection Postman complète pour tester le Service 3 : Demandes de Transport\n\n## 📚 Documentation API\nCe service dispose de plusieurs façons d'accéder à la documentation :\n- **/** - Documentation JSON personnalisée avec exemples de test\n- **/swagger-ui.html** - Interface Swagger UI interactive (ouvrir dans navigateur)\n- **/v3/api-docs** - Spécification OpenAPI 3.0 standard\n\n## Instructions\n1. Le token JWT de test est déjà configuré et valide jusqu'en 2030\n2. Consultez la section 📚 API Documentation pour accéder aux docs sans authentification\n3. Lancez 'Health Check' pour vérifier que le service fonctionne\n4. Créez une demande avec 'Créer une Demande'\n5. Copiez l'ID de la demande créée (automatiquement sauvegardé dans 'demande_id')\n6. Testez les autres endpoints\n\n## Endpoints Principaux\n- POST /api/v1/demandes - Créer une demande\n- GET /api/v1/demandes - Lister mes demandes\n- GET /api/v1/demandes/{id} - Voir une demande\n- PUT /api/v1/demandes/{id}/validation - Valider une demande\n- PUT /api/v1/demandes/{id}/paiement - Webhook paiement (sans auth)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:8083",
+      "value": "http://172.30.80.11:31029",
       "type": "string"
     },
     {
@@ -25,6 +25,54 @@
     }
   ],
   "item": [
+    {
+      "name": "📚 API Documentation",
+      "item": [
+        {
+          "name": "Custom JSON Documentation (Root)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/",
+              "host": ["{{baseUrl}}"],
+              "path": [""]
+            },
+            "description": "Accède à la documentation API personnalisée en format JSON avec exemples de test pour PowerShell, cURL et Fetch. **Pas d'authentification requise**"
+          },
+          "response": []
+        },
+        {
+          "name": "OpenAPI 3.0 Specification",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/v3/api-docs",
+              "host": ["{{baseUrl}}"],
+              "path": ["v3", "api-docs"]
+            },
+            "description": "Récupère la spécification OpenAPI 3.0 complète en JSON. Utile pour importer dans des outils comme Postman ou générer des SDKs client. **Pas d'authentification requise**"
+          },
+          "response": []
+        },
+        {
+          "name": "Swagger UI URL",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/swagger-ui.html",
+              "host": ["{{baseUrl}}"],
+              "path": ["swagger-ui.html"]
+            },
+            "description": "Ouvre l'interface Swagger UI interactive dans votre navigateur. Permet de tester les endpoints directement depuis le navigateur web. **Pas d'authentification requise**\n\nNote: Ouvrez cette URL dans un navigateur pour voir l'interface complète."
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints de documentation API - Tous accessibles sans authentification"
+    },
     {
       "name": "🏥 Health & Status",
       "item": [

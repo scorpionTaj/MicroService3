@@ -42,6 +42,9 @@ public class SecurityConfig {
                         // Route webhook pour mise à jour paiement (sécurisée différemment)
                         .requestMatchers("/api/v1/demandes/*/paiement").permitAll()
 
+                        // Swagger & OpenAPI routes (sans authentification)
+                        .requestMatchers("/", "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+
                         // Toutes les autres routes nécessitent une authentification
                         .requestMatchers("/api/v1/demandes/**").authenticated()
 
