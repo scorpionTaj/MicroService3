@@ -43,7 +43,17 @@ public class SecurityConfig {
                         .requestMatchers("/api/v1/demandes/*/paiement").permitAll()
 
                         // Swagger & OpenAPI routes (sans authentification)
-                        .requestMatchers("/", "/api-docs/**", "/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
+                        .requestMatchers(
+                                "/",
+                                "/swagger-ui.html",
+                                "/swagger-ui/**",
+                                "/swagger-resources/**",
+                                "/v3/api-docs",
+                                "/v3/api-docs/**",
+                                "/v3/api-docs.yaml",
+                                "/api-docs/**",
+                                "/webjars/**"
+                        ).permitAll()
 
                         // Toutes les autres routes nécessitent une authentification
                         .requestMatchers("/api/v1/demandes/**").authenticated()

@@ -13,8 +13,10 @@ import java.util.Map;
 
 /**
  * Gestionnaire global des exceptions
+ * Note: basePackages limite ce handler aux contrôleurs de l'application,
+ * évitant d'interférer avec les endpoints de springdoc (OpenAPI/Swagger)
  */
-@RestControllerAdvice
+@RestControllerAdvice(basePackages = "ma.tna.microservice3.controller")
 public class GlobalExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)

@@ -29,6 +29,21 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         this.jwtUtil = jwtUtil;
     }
 
+    /**
+     * Exclure les endpoints OpenAPI/Swagger du filtrage JWT
+     */
+    @Override
+    protected boolean shouldNotFilter(HttpServletRequest request) {
+        String path = request.getServletPath();
+        return path.startsWith("/v3/api-docs") ||
+               path.startsWith("/swagger-ui") ||
+               path.startsWith("/swagger-resources") ||
+               path.startsWith("/webjars") ||
+               path.equals("/swagger-ui.html") ||
+               path.startsWith("/actuator") ||
+               path.equals("/");
+    }
+
     @Override
     protected void doFilterInternal(
             @NonNull HttpServletRequest request,
