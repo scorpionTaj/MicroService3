@@ -10,7 +10,6 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import ma.tna.microservice3.dto.DemandeRequestDTO;
 import ma.tna.microservice3.dto.DemandeResponseDTO;
-import ma.tna.microservice3.dto.PaiementStatusUpdateDTO;
 import ma.tna.microservice3.service.DemandeService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -142,34 +141,6 @@ public class DemandeController {
         DemandeResponseDTO response = demandeService.getDemandeById(id, userId);
 
         return ResponseEntity.ok(response);
-    }
-
-    /**
-     * Webhook pour la mise à jour du statut de paiement
-     * Appelé par le Service Paiements
-     * Note: Cette route devrait être sécurisée par une clé API ou restriction IP en production
-     */
-    @Operation(
-        summary = "Mettre à jour le statut de paiement",
-        description = "Webhook appelé par le Service Paiements pour mettre à jour le statut de paiement d'une demande",
-        security = {}
-    )
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Statut de paiement mis à jour avec succès"),
-        @ApiResponse(responseCode = "400", description = "Données de requête invalides"),
-        @ApiResponse(responseCode = "404", description = "Demande non trouvée")
-    })
-    @PutMapping("/{id}/paiement")
-    public ResponseEntity<Void> mettreAJourStatutPaiement(
-            @Parameter(description = "ID de la demande", required = true)
-            @PathVariable Long id,
-            @Valid @RequestBody PaiementStatusUpdateDTO statusUpdateDTO
-    ) {
-        logger.info("Mise à jour du statut de paiement pour la demande ID: {}", id);
-
-        demandeService.mettreAJourStatutPaiement(id, statusUpdateDTO);
-
-        return ResponseEntity.ok().build();
     }
 
     /**

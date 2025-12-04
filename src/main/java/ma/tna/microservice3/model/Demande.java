@@ -77,14 +77,6 @@ public class Demande {
     private StatutValidation statutValidation = StatutValidation.EN_ATTENTE_CLIENT;
 
     /**
-     * Statut du paiement
-     */
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false, length = 50)
-    @Builder.Default
-    private StatutPaiement statutPaiement = StatutPaiement.EN_ATTENTE;
-
-    /**
      * ID de l'itinéraire associé (provenant du Service 4)
      */
     @Column

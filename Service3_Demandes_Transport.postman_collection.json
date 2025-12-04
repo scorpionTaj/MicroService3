@@ -2,7 +2,7 @@
   "info": {
     "name": "Service 3 - Demandes de Transport (Complete)",
     "_postman_id": "service3-demandes-transport-complete",
-    "description": "Collection Postman complète pour tester le Service 3 : Demandes de Transport et Catégories de Marchandises\n\n## 📚 Documentation API\nCe service dispose de plusieurs façons d'accéder à la documentation :\n- **/** - Documentation JSON personnalisée avec exemples de test\n- **/swagger-ui.html** - Interface Swagger UI interactive (ouvrir dans navigateur)\n- **/v3/api-docs** - Spécification OpenAPI 3.0 standard\n\n## Instructions\n1. Le token JWT de test est déjà configuré et valide jusqu'en 2030\n2. Consultez la section 📚 API Documentation pour accéder aux docs sans authentification\n3. Lancez 'Health Check' pour vérifier que le service fonctionne\n4. Testez les catégories (lecture publique, écriture avec JWT)\n5. Créez une demande avec 'Créer une Demande' (peut inclure une catégorie)\n6. Copiez l'ID de la demande créée (automatiquement sauvegardé dans 'demande_id')\n\n## Endpoints Principaux - Demandes\n- POST /api/v1/demandes - Créer une demande\n- GET /api/v1/demandes - Lister mes demandes\n- GET /api/v1/demandes/{id} - Voir une demande\n- PUT /api/v1/demandes/{id}/validation - Valider une demande\n- PUT /api/v1/demandes/{id}/paiement - Webhook paiement (sans auth)\n\n## Endpoints Principaux - Catégories\n- GET /api/v1/categories - Lister les catégories (public)\n- GET /api/v1/categories/{id} - Voir une catégorie (public)\n- GET /api/v1/categories/search?keyword= - Rechercher (public)\n- GET /api/v1/categories/filter/* - Filtrer (public)\n- POST /api/v1/categories - Créer une catégorie (JWT)\n- PUT /api/v1/categories/{id} - Modifier (JWT)\n- DELETE /api/v1/categories/{id} - Supprimer (JWT)",
+    "description": "Collection Postman complète pour tester le Service 3 : Demandes de Transport et Catégories de Marchandises\n\n## 📚 Documentation API\nCe service dispose de plusieurs façons d'accéder à la documentation :\n- **/** - Documentation JSON personnalisée avec exemples de test\n- **/swagger-ui.html** - Interface Swagger UI interactive (ouvrir dans navigateur)\n- **/v3/api-docs** - Spécification OpenAPI 3.0 standard\n\n## Instructions\n1. Le token JWT de test est déjà configuré et valide jusqu'en 2030\n2. Consultez la section 📚 API Documentation pour accéder aux docs sans authentification\n3. Lancez 'Health Check' pour vérifier que le service fonctionne\n4. Testez les catégories (lecture publique, écriture avec JWT)\n5. Créez une demande avec 'Créer une Demande' (peut inclure une catégorie)\n6. Copiez l'ID de la demande créée (automatiquement sauvegardé dans 'demande_id')\n\n## Endpoints Principaux - Demandes\n- POST /api/v1/demandes - Créer une demande\n- GET /api/v1/demandes - Lister mes demandes\n- GET /api/v1/demandes/{id} - Voir une demande\n- PUT /api/v1/demandes/{id}/validation - Valider une demande\n\n## Endpoints Principaux - Catégories\n- GET /api/v1/categories - Lister les catégories (public)\n- GET /api/v1/categories/{id} - Voir une catégorie (public)\n- GET /api/v1/categories/search?keyword= - Rechercher (public)\n- GET /api/v1/categories/filter/* - Filtrer (public)\n- POST /api/v1/categories - Créer une catégorie (JWT)\n- PUT /api/v1/categories/{id} - Modifier (JWT)\n- DELETE /api/v1/categories/{id} - Supprimer (JWT)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -191,14 +191,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"volume\": 15.5,\n  \"natureMarchandise\": \"Meubles de salon\",\n  \"dateDepart\": \"2025-12-15T10:00:00\",\n  \"adresseDepart\": \"123 Rue Mohammed V, Casablanca\",\n  \"adresseDestination\": \"456 Avenue Hassan II, Rabat\"\n}"
+              "raw": "{\n  \"volume\": 15.5,\n  \"natureMarchandise\": \"Meubles de salon\",\n  \"dateDepart\": \"2025-12-15T10:00:00\",\n  \"adresseDepart\": \"123 Rue Mohammed V, Casablanca\",\n  \"adresseDestination\": \"456 Avenue Hassan II, Rabat\",\n  \"categorieId\": \"cat-001-meubles\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/demandes",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "demandes"]
             },
-            "description": "Crée une nouvelle demande de transport. L'ID de la demande créée est automatiquement sauvegardé dans la variable 'demande_id'."
+            "description": "Crée une nouvelle demande de transport avec une catégorie. L'ID de la demande créée est automatiquement sauvegardé dans la variable 'demande_id'. Le categorieId est optionnel et doit correspondre à une catégorie existante."
           },
           "response": []
         },
@@ -266,84 +266,6 @@
       "description": "Opérations CRUD sur les demandes (nécessite JWT)"
     },
     {
-      "name": "🔄 Webhooks (Internes)",
-      "item": [
-        {
-          "name": "Webhook - Paiement Effectué",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nouveauStatut\": \"PAYEE\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/demandes/{{demande_id}}/paiement",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "demandes", "{{demande_id}}", "paiement"]
-            },
-            "description": "Webhook appelé par le Service Paiements pour indiquer qu'une demande a été payée"
-          },
-          "response": []
-        },
-        {
-          "name": "Webhook - Paiement Échoué",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nouveauStatut\": \"ECHEC\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/demandes/{{demande_id}}/paiement",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "demandes", "{{demande_id}}", "paiement"]
-            },
-            "description": "Webhook pour simuler un paiement échoué"
-          },
-          "response": []
-        },
-        {
-          "name": "Webhook - Paiement en Attente",
-          "request": {
-            "method": "PUT",
-            "header": [
-              {
-                "key": "Content-Type",
-                "value": "application/json",
-                "type": "text"
-              }
-            ],
-            "body": {
-              "mode": "raw",
-              "raw": "{\n  \"nouveauStatut\": \"EN_ATTENTE\"\n}"
-            },
-            "url": {
-              "raw": "{{baseUrl}}/api/v1/demandes/{{demande_id}}/paiement",
-              "host": ["{{baseUrl}}"],
-              "path": ["api", "v1", "demandes", "{{demande_id}}", "paiement"]
-            },
-            "description": "Webhook pour indiquer que le paiement est en attente"
-          },
-          "response": []
-        }
-      ],
-      "description": "Endpoints webhooks appelés par d'autres services (pas besoin de JWT)"
-    },
-    {
       "name": "📝 Exemples de Demandes",
       "item": [
         {
@@ -378,14 +300,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"volume\": 20.0,\n  \"natureMarchandise\": \"Meubles - Canapé, table basse et armoire\",\n  \"dateDepart\": \"2025-12-20T09:00:00\",\n  \"adresseDepart\": \"45 Boulevard Mohammed V, Casablanca, 20000\",\n  \"adresseDestination\": \"12 Avenue Allal Ben Abdellah, Rabat, 10000\"\n}"
+              "raw": "{\n  \"volume\": 20.0,\n  \"natureMarchandise\": \"Meubles - Canapé, table basse et armoire\",\n  \"dateDepart\": \"2025-12-20T09:00:00\",\n  \"adresseDepart\": \"45 Boulevard Mohammed V, Casablanca, 20000\",\n  \"adresseDestination\": \"12 Avenue Allal Ben Abdellah, Rabat, 10000\",\n  \"categorieId\": \"cat-001-meubles\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/demandes",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "demandes"]
             },
-            "description": "Exemple: Transport de meubles de Casablanca à Rabat"
+            "description": "Exemple: Transport de meubles de Casablanca à Rabat. Utilise la catégorie 'Meubles et Mobilier' (cat-001-meubles) - produits fragiles."
           },
           "response": []
         },
@@ -421,14 +343,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"volume\": 8.5,\n  \"natureMarchandise\": \"Électroménager - Réfrigérateur et machine à laver\",\n  \"dateDepart\": \"2025-12-18T14:00:00\",\n  \"adresseDepart\": \"30 Rue Ibn Batouta, Marrakech, 40000\",\n  \"adresseDestination\": \"5 Avenue Hassan II, Agadir, 80000\"\n}"
+              "raw": "{\n  \"volume\": 8.5,\n  \"natureMarchandise\": \"Électroménager - Réfrigérateur et machine à laver\",\n  \"dateDepart\": \"2025-12-18T14:00:00\",\n  \"adresseDepart\": \"30 Rue Ibn Batouta, Marrakech, 40000\",\n  \"adresseDestination\": \"5 Avenue Hassan II, Agadir, 80000\",\n  \"categorieId\": \"cat-002-electro\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/demandes",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "demandes"]
             },
-            "description": "Exemple: Transport d'électroménager de Marrakech à Agadir"
+            "description": "Exemple: Transport d'électroménager de Marrakech à Agadir. Utilise la catégorie 'Électroménager' (cat-002-electro) - produits fragiles."
           },
           "response": []
         },
@@ -464,14 +386,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"volume\": 35.0,\n  \"natureMarchandise\": \"Matériaux de construction - Briques, ciment et fer\",\n  \"dateDepart\": \"2025-12-22T08:00:00\",\n  \"adresseDepart\": \"Zone Industrielle Ain Sebaa, Casablanca, 20000\",\n  \"adresseDestination\": \"Chantier Hay Riad, Rabat, 10000\"\n}"
+              "raw": "{\n  \"volume\": 35.0,\n  \"natureMarchandise\": \"Matériaux de construction - Briques, ciment et fer\",\n  \"dateDepart\": \"2025-12-22T08:00:00\",\n  \"adresseDepart\": \"Zone Industrielle Ain Sebaa, Casablanca, 20000\",\n  \"adresseDestination\": \"Chantier Hay Riad, Rabat, 10000\",\n  \"categorieId\": \"cat-004-materi\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/demandes",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "demandes"]
             },
-            "description": "Exemple: Transport de matériaux de construction"
+            "description": "Exemple: Transport de matériaux de construction. Utilise la catégorie 'Matériaux de Construction' (cat-004-materi) - haute densité."
           },
           "response": []
         },
@@ -507,14 +429,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"volume\": 12.0,\n  \"natureMarchandise\": \"Produits alimentaires - Fruits et légumes frais\",\n  \"dateDepart\": \"2025-12-16T06:00:00\",\n  \"adresseDepart\": \"Marché de Gros, Kenitra, 14000\",\n  \"adresseDestination\": \"Supermarché Central, Tanger, 90000\"\n}"
+              "raw": "{\n  \"volume\": 12.0,\n  \"natureMarchandise\": \"Produits alimentaires - Fruits et légumes frais\",\n  \"dateDepart\": \"2025-12-16T06:00:00\",\n  \"adresseDepart\": \"Marché de Gros, Kenitra, 14000\",\n  \"adresseDestination\": \"Supermarché Central, Tanger, 90000\",\n  \"categorieId\": \"cat-005-alimen\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/demandes",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "demandes"]
             },
-            "description": "Exemple: Transport de produits alimentaires de Kenitra à Tanger"
+            "description": "Exemple: Transport de produits alimentaires de Kenitra à Tanger. Utilise la catégorie 'Produits Alimentaires' (cat-005-alimen) - nécessite température contrôlée (2-8°C)."
           },
           "response": []
         },
@@ -550,14 +472,14 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"volume\": 5.0,\n  \"natureMarchandise\": \"Équipements informatiques - Serveurs et ordinateurs\",\n  \"dateDepart\": \"2025-12-17T11:00:00\",\n  \"adresseDepart\": \"Technopark, Casablanca, 20000\",\n  \"adresseDestination\": \"Université Al Akhawayn, Ifrane, 53000\"\n}"
+              "raw": "{\n  \"volume\": 5.0,\n  \"natureMarchandise\": \"Équipements informatiques - Serveurs et ordinateurs\",\n  \"dateDepart\": \"2025-12-17T11:00:00\",\n  \"adresseDepart\": \"Technopark, Casablanca, 20000\",\n  \"adresseDestination\": \"Université Al Akhawayn, Ifrane, 53000\",\n  \"categorieId\": \"cat-003-electr\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/demandes",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "demandes"]
             },
-            "description": "Exemple: Transport d'équipements informatiques fragiles"
+            "description": "Exemple: Transport d'équipements informatiques. Utilise la catégorie 'Électronique' (cat-003-electr) - produits très fragiles nécessitant manipulation spéciale."
           },
           "response": []
         }
@@ -985,6 +907,262 @@
         }
       ],
       "description": "Exemples de création de différentes catégories"
+    },
+    {
+      "name": "🔗 Demandes avec Catégories",
+      "item": [
+        {
+          "name": "1. Voir les Catégories Disponibles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "categories"]
+            },
+            "description": "Première étape: Lister les catégories pour choisir celle qui correspond à votre marchandise"
+          },
+          "response": []
+        },
+        {
+          "name": "2. Demande Meubles (Fragiles)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('demande_id', jsonData.id);",
+                  "    console.log('Demande créée: ' + jsonData.id + ' avec catégorie: ' + (jsonData.categorie ? jsonData.categorie.nom : 'aucune'));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"volume\": 18.0,\n  \"natureMarchandise\": \"Salon complet - Canapé 3 places + fauteuils\",\n  \"dateDepart\": \"2025-12-20T09:00:00\",\n  \"adresseDepart\": \"123 Rue Mohammed V, Casablanca\",\n  \"adresseDestination\": \"456 Avenue Hassan II, Rabat\",\n  \"categorieId\": \"cat-001-meubles\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes"]
+            },
+            "description": "Demande de transport de meubles avec catégorie 'Meubles et Mobilier' (fragile=true). La réponse inclut les détails de la catégorie."
+          },
+          "response": []
+        },
+        {
+          "name": "3. Demande Produits Frais (Temp Contrôlée)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('demande_id', jsonData.id);",
+                  "    console.log('Demande créée: ' + jsonData.id + ' - Temp requise: ' + (jsonData.categorie ? jsonData.categorie.temperatureRequise : 'N/A'));",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"volume\": 8.0,\n  \"natureMarchandise\": \"Fruits et légumes frais pour restaurant\",\n  \"dateDepart\": \"2025-12-16T05:00:00\",\n  \"adresseDepart\": \"Marché de Gros, Agadir\",\n  \"adresseDestination\": \"Restaurant Le Jardin, Marrakech\",\n  \"categorieId\": \"cat-005-alimen\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes"]
+            },
+            "description": "Demande avec catégorie alimentaire. La catégorie indique temperatureRequise='2-8°C' pour transport réfrigéré."
+          },
+          "response": []
+        },
+        {
+          "name": "4. Demande Produits Chimiques (Dangereux)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('demande_id', jsonData.id);",
+                  "    console.log('⚠️ Demande DANGEREUSE créée: ' + jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"volume\": 5.0,\n  \"natureMarchandise\": \"Solvants industriels pour usine\",\n  \"dateDepart\": \"2025-12-25T08:00:00\",\n  \"adresseDepart\": \"Zone Industrielle Sidi Bernoussi, Casablanca\",\n  \"adresseDestination\": \"Usine TechChem, Tanger\",\n  \"categorieId\": \"cat-006-chimiq\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes"]
+            },
+            "description": "Demande de produits chimiques dangereux. La catégorie indique dangereux=true et les restrictions ADR."
+          },
+          "response": []
+        },
+        {
+          "name": "5. Demande Sans Catégorie (Optionnel)",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('demande_id', jsonData.id);",
+                  "    console.log('Demande sans catégorie créée: ' + jsonData.id);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"volume\": 10.0,\n  \"natureMarchandise\": \"Cartons divers non classifiés\",\n  \"dateDepart\": \"2025-12-18T14:00:00\",\n  \"adresseDepart\": \"Entrepôt Central, Fès\",\n  \"adresseDestination\": \"Magasin, Meknès\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes"]
+            },
+            "description": "Le categorieId est optionnel. Cette demande est créée sans catégorie associée."
+          },
+          "response": []
+        },
+        {
+          "name": "6. Voir Demande avec Catégorie",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes/{{demande_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes", "{{demande_id}}"]
+            },
+            "description": "Récupère la demande avec tous ses détails, incluant l'objet 'categorie' complet avec nom, fragile, dangereux, temperatureRequise, etc."
+          },
+          "response": []
+        },
+        {
+          "name": "7. Filtrer Catégories Fragiles",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories/filter/fragile?fragile=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "categories", "filter", "fragile"],
+              "query": [
+                {
+                  "key": "fragile",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Liste toutes les catégories de produits fragiles pour guider le choix du client"
+          },
+          "response": []
+        },
+        {
+          "name": "8. Filtrer Catégories Dangereuses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories/filter/dangereux?dangereux=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "categories", "filter", "dangereux"],
+              "query": [
+                {
+                  "key": "dangereux",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Liste les catégories de produits dangereux nécessitant transport ADR"
+          },
+          "response": []
+        }
+      ],
+      "description": "Exemples montrant la liaison entre les demandes et les catégories. Le categorieId permet d'associer une catégorie à la demande pour définir les contraintes de transport (fragile, dangereux, température)."
     },
     {
       "name": "🔒 Tests de Sécurité",

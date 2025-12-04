@@ -4,12 +4,12 @@ API REST Spring Boot permettant de :
 
 - Créer des demandes de transport avec calcul automatique du devis
 - Valider les demandes par les clients
-- Gérer le cycle de vie des demandes (création → validation → paiement)
+- Gérer le cycle de vie des demandes (création → validation → affectation)
 - Suivre l'historique des demandes par client
 
 Base URL : `/api/v1/demandes`
 
-> **Note importante** : Ce service s'intègre avec les Services 4 (Itinéraires), 5 (Tarification), 7 (Paiements) et 8 (Matching) pour offrir une expérience complète.
+> **Note importante** : Ce service s'intègre avec les Services 4 (Itinéraires), 5 (Tarification) et 8 (Matching) pour offrir une expérience complète.
 
 ## Sommaire
 
@@ -60,7 +60,6 @@ Importez `Service3_Demandes_Transport.postman_collection.json` dans Postman - le
 | GET     | `/api/v1/demandes`                 | Lister toutes mes demandes              | JWT requis       |
 | GET     | `/api/v1/demandes/{id}`            | Récupérer une demande par ID            | JWT requis       |
 | PUT     | `/api/v1/demandes/{id}/validation` | Valider une demande (accepter le devis) | JWT requis       |
-| PUT     | `/api/v1/demandes/{id}/paiement`   | Webhook - Mise à jour statut paiement   | Non (interne)    |
 
 ### Catégories de Marchandise
 
@@ -164,7 +163,6 @@ Importez `Service3_Demandes_Transport.postman_collection.json` dans Postman - le
   "adresseDepart": "123 Rue Mohammed V, Casablanca",
   "adresseDestination": "456 Avenue Hassan II, Rabat",
   "statutValidation": "EN_ATTENTE_CLIENT",
-  "statutPaiement": "EN_ATTENTE",
   "devisEstime": 1500.0,
   "itineraireAssocieId": 42,
   "groupeId": null,
@@ -194,14 +192,6 @@ Le système inclut les catégories suivantes par défaut :
 | `cat-007-pharma`  | Produits Pharmaceutiques  | ✅      | ❌        | refrigere   |
 | `cat-008-texti`   | Textiles                  | ❌      | ❌        | ambiante    |
 
-### `PaiementStatusUpdateDTO` (webhook paiement)
-
-```json
-{
-  "nouveauStatut": "PAYEE"
-}
-```
-
 ### Énumérations
 
 #### StatutValidation
@@ -213,15 +203,6 @@ Le système inclut les catégories suivantes par défaut :
 | `VALIDEE_PRESTATAIRE` | Validée par le prestataire              |
 | `TERMINEE`            | Demande terminée                        |
 | `ANNULEE`             | Demande annulée                         |
-
-#### StatutPaiement
-
-| Valeur       | Description         |
-| ------------ | ------------------- |
-| `EN_ATTENTE` | Paiement en attente |
-| `PAYEE`      | Paiement effectué   |
-| `REMBOURSEE` | Paiement remboursé  |
-| `ECHEC`      | Paiement échoué     |
 
 ---
 
@@ -252,7 +233,6 @@ Content-Type: application/json
   "volume": 15.5,
   "natureMarchandise": "Meubles de salon",
   "statutValidation": "EN_ATTENTE_CLIENT",
-  "statutPaiement": "EN_ATTENTE",
   "devisEstime": 1500.00,
   ...
 }
@@ -286,17 +266,6 @@ Authorization: Bearer <jwt_token>
   "id": 1,
   "statutValidation": "VALIDEE_CLIENT",
   ...
-}
-```
-
-### 5. Webhook - Mise à jour statut paiement
-
-```http
-PUT /api/v1/demandes/1/paiement
-Content-Type: application/json
-
-{
-  "nouveauStatut": "PAYEE"
 }
 ```
 
@@ -389,7 +358,6 @@ GET /actuator/health/readiness  → Application prête ?
 | `JWT_SECRET`                 | Clé secrète JWT (Base64)    | Voir `application.properties`                  |
 | `SERVICE_URL_ITINERAIRES`    | URL Service Itinéraires     | `http://localhost:8084/api/v1/itineraires`     |
 | `SERVICE_URL_TARIFICATION`   | URL Service Tarification    | `http://localhost:8085/api/v1/tarifs`          |
-| `SERVICE_URL_PAIEMENTS`      | URL Service Paiements       | `http://localhost:8087/api/v1/paiements`       |
 | `SERVICE_URL_MATCHING`       | URL Service Matching        | `http://localhost:8088/api/v1/matching`        |
 
 ---
@@ -500,31 +468,16 @@ docker system prune -f
 │                           (Ce Service)                             │
 │                             :8083                                  │
 └────────────────────────────────────────────────────────────────────┘
-         │                       │
-         │ Init Paiement         │ Matching Transporteur
-         ▼                       ▼
-┌─────────────────┐     ┌─────────────────┐
-│   Service 7     │     │   Service 8     │
-│   (Paiements)   │     │   (Matching)    │
-│     :8087       │     │     :8088       │
-└─────────────────┘     └─────────────────┘
+                                 │
+                                 │ Matching Transporteur
+                                 ▼
+                        ┌─────────────────┐
+                        │   Service 8     │
+                        │   (Matching)    │
+                        │     :8088       │
+                        └─────────────────┘
 ```
 
----
-
-## Tests
-
-### Exécuter les tests
-
-```bash
-./mvnw test
-```
-
-### Résultat attendu
-
-```
-Tests run: 13, Failures: 0, Errors: 0, Skipped: 0
-BUILD SUCCESS
 ```
 
 ---
@@ -535,7 +488,6 @@ Le fichier `Service3_Demandes_Transport.postman_collection.json` contient :
 
 - 🏥 **Health & Status** - Endpoints de monitoring
 - 📦 **Demandes CRUD** - Créer, lister, voir, valider
-- 🔄 **Webhooks** - Mise à jour statut paiement
 - 📝 **Exemples** - Différents types de demandes
 - 🔒 **Tests Sécurité** - Vérification authentification
 
@@ -561,5 +513,6 @@ Le fichier `Service3_Demandes_Transport.postman_collection.json` contient :
 
 ## Auteur
 
-**MicroService3** - Service Demandes de Transport  
+**MicroService3** - Service Demandes de Transport
 Fait partie de l'architecture microservices de Transport Maroc.
+```

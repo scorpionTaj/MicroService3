@@ -4,7 +4,6 @@ import ma.tna.microservice3.dto.CategorieResponseDTO;
 import ma.tna.microservice3.dto.DemandeRequestDTO;
 import ma.tna.microservice3.dto.DemandeResponseDTO;
 import ma.tna.microservice3.model.Demande;
-import ma.tna.microservice3.model.StatutPaiement;
 import ma.tna.microservice3.model.StatutValidation;
 import org.springframework.stereotype.Component;
 
@@ -32,7 +31,6 @@ public class DemandeMapper {
                 .adresseDepart(dto.adresseDepart())
                 .adresseDestination(dto.adresseDestination())
                 .statutValidation(StatutValidation.EN_ATTENTE_CLIENT)
-                .statutPaiement(StatutPaiement.EN_ATTENTE)
                 .build();
     }
 
@@ -54,7 +52,6 @@ public class DemandeMapper {
                 demande.getAdresseDepart(),
                 demande.getAdresseDestination(),
                 demande.getStatutValidation().name(),
-                demande.getStatutPaiement().name(),
                 demande.getDevisEstime(),
                 demande.getItineraireAssocieId(),
                 demande.getGroupeId(),

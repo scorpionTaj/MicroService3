@@ -79,29 +79,6 @@
       }
     },
     {
-      "method": "PUT",
-      "path": "/demandes/{id}/paiement",
-      "summary": "Mettre à jour le statut de paiement",
-      "description": "Webhook appelé par le Service Paiements pour mettre à jour le statut de paiement d'une demande",
-      "authentication": "None",
-      "parameters": [
-        {
-          "name": "id",
-          "type": "integer",
-          "required": true,
-          "description": "ID de la demande"
-        }
-      ],
-      "requestBody": {
-        "nouveauStatut": "PAYEE"
-      },
-      "testExamples": {
-        "powershell": "$headers = @{'Content-Type'='application/json'}; $body = '{\"nouveauStatut\":\"PAYEE\"}'; Invoke-RestMethod -Uri 'http://localhost:8083/api/v1/demandes/1/paiement' -Method PUT -Headers $headers -Body $body",
-        "curl": "curl -X PUT 'http://localhost:8083/api/v1/demandes/1/paiement' -H 'Content-Type: application/json' -d '{\"nouveauStatut\":\"PAYEE\"}'",
-        "fetch": "fetch('http://localhost:8083/api/v1/demandes/1/paiement', {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({nouveauStatut:'PAYEE'})}).then(r=>r.json()).then(console.log)"
-      }
-    },
-    {
       "method": "GET",
       "path": "/categories",
       "summary": "Récupérer toutes les catégories",
@@ -323,19 +300,12 @@
         "adresseDepart": "string - Adresse de départ",
         "adresseDestination": "string - Adresse de destination",
         "statutValidation": "string - Statut de validation (EN_ATTENTE, VALIDEE, REFUSEE)",
-        "statutPaiement": "string - Statut de paiement (EN_ATTENTE, PAYEE, REMBOURSEE)",
         "devisEstime": "decimal - Devis estimé en MAD",
         "itineraireAssocieId": "integer - ID de l'itinéraire associé",
         "groupeId": "integer - ID du groupe de transport",
         "categorie": "object - Informations sur la catégorie de marchandise",
         "dateCreation": "datetime - Date de création de la demande",
         "dateModification": "datetime - Date de dernière modification"
-      }
-    },
-    "PaiementStatusUpdate": {
-      "type": "object",
-      "properties": {
-        "nouveauStatut": "string - Nouveau statut de paiement (EN_ATTENTE, PAYEE, REMBOURSEE)"
       }
     },
     "CategorieRequest": {

@@ -34,9 +34,6 @@ public record DemandeResponseDTO(
         @Schema(description = "Statut de validation", example = "EN_ATTENTE", allowableValues = {"EN_ATTENTE", "VALIDEE", "REFUSEE"})
         String statutValidation,
 
-        @Schema(description = "Statut de paiement", example = "EN_ATTENTE", allowableValues = {"EN_ATTENTE", "PAYEE", "REMBOURSEE", "ECHEC"})
-        String statutPaiement,
-
         @Schema(description = "Devis estimé en MAD", example = "1500.00")
         BigDecimal devisEstime,
 

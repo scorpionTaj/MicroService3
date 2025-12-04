@@ -40,7 +40,6 @@ CREATE TABLE IF NOT EXISTS demandes (
     adresse_depart VARCHAR(500) NOT NULL,
     adresse_destination VARCHAR(500) NOT NULL,
     statut_validation VARCHAR(50) NOT NULL DEFAULT 'EN_ATTENTE_CLIENT',
-    statut_paiement VARCHAR(50) NOT NULL DEFAULT 'EN_ATTENTE',
     itineraire_associe_id BIGINT,
     groupe_id BIGINT,
     categorie_id VARCHAR(36) REFERENCES categories(id_categorie),
@@ -52,7 +51,6 @@ CREATE TABLE IF NOT EXISTS demandes (
 -- Index pour améliorer les performances
 CREATE INDEX IF NOT EXISTS idx_demandes_client_id ON demandes(client_id);
 CREATE INDEX IF NOT EXISTS idx_demandes_statut_validation ON demandes(statut_validation);
-CREATE INDEX IF NOT EXISTS idx_demandes_statut_paiement ON demandes(statut_paiement);
 CREATE INDEX IF NOT EXISTS idx_demandes_date_depart ON demandes(date_depart);
 CREATE INDEX IF NOT EXISTS idx_demandes_categorie_id ON demandes(categorie_id);
 
@@ -76,11 +74,11 @@ VALUES
 ON CONFLICT (id_categorie) DO NOTHING;
 
 -- Données de test (optionnel)
-INSERT INTO demandes (client_id, volume, nature_marchandise, date_depart, adresse_depart, adresse_destination, statut_validation, statut_paiement, categorie_id, devis_estime)
+INSERT INTO demandes (client_id, volume, nature_marchandise, date_depart, adresse_depart, adresse_destination, statut_validation, categorie_id, devis_estime)
 VALUES
-    (1, 15.5, 'Meubles', '2024-12-15 10:00:00', '123 Rue Example, Paris', '456 Avenue Test, Lyon', 'EN_ATTENTE_CLIENT', 'EN_ATTENTE', 'cat-001-meubles', 250.00),
-    (1, 8.0, 'Électroménager', '2024-12-20 14:00:00', '789 Boulevard Demo, Marseille', '321 Rue Sample, Nice', 'VALIDEE_CLIENT', 'EN_ATTENTE', 'cat-002-electro', 180.00),
-    (2, 25.0, 'Matériaux de construction', '2024-12-18 08:00:00', '555 Avenue Construction, Toulouse', '666 Rue Bâtiment, Bordeaux', 'EN_ATTENTE_CLIENT', 'EN_ATTENTE', 'cat-005-constr', 450.00)
+    (1, 15.5, 'Meubles', '2024-12-15 10:00:00', '123 Rue Example, Paris', '456 Avenue Test, Lyon', 'EN_ATTENTE_CLIENT', 'cat-001-meubles', 250.00),
+    (1, 8.0, 'Électroménager', '2024-12-20 14:00:00', '789 Boulevard Demo, Marseille', '321 Rue Sample, Nice', 'VALIDEE_CLIENT', 'cat-002-electro', 180.00),
+    (2, 25.0, 'Matériaux de construction', '2024-12-18 08:00:00', '555 Avenue Construction, Toulouse', '666 Rue Bâtiment, Bordeaux', 'EN_ATTENTE_CLIENT', 'cat-005-constr', 450.00)
 ON CONFLICT (id) DO NOTHING;
 
 -- Fin du script

@@ -2,7 +2,6 @@ package ma.tna.microservice3.service;
 
 import ma.tna.microservice3.dto.DemandeRequestDTO;
 import ma.tna.microservice3.dto.DemandeResponseDTO;
-import ma.tna.microservice3.dto.PaiementStatusUpdateDTO;
 
 import java.util.List;
 
@@ -26,13 +25,6 @@ public interface DemandeService {
      * @return La demande validée
      */
     DemandeResponseDTO validerDemandeClient(Long demandeId, Long userId);
-
-    /**
-     * Met à jour le statut de paiement d'une demande
-     * @param demandeId L'ID de la demande
-     * @param dto Le nouveau statut de paiement
-     */
-    void mettreAJourStatutPaiement(Long demandeId, PaiementStatusUpdateDTO dto);
 
     /**
      * Récupère une demande par son ID

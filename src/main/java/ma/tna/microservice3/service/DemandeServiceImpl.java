@@ -4,8 +4,10 @@ import ma.tna.microservice3.dto.*;
 import ma.tna.microservice3.exception.ResourceNotFoundException;
 import ma.tna.microservice3.exception.UnauthorizedException;
 import ma.tna.microservice3.mapper.DemandeMapper;
+import ma.tna.microservice3.model.Categorie;
 import ma.tna.microservice3.model.Demande;
 import ma.tna.microservice3.model.StatutValidation;
+import ma.tna.microservice3.repository.CategorieRepository;
 import ma.tna.microservice3.repository.DemandeRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,6 +32,7 @@ public class DemandeServiceImpl implements DemandeService {
     private static final Logger logger = LoggerFactory.getLogger(DemandeServiceImpl.class);
 
     private final DemandeRepository demandeRepository;
+    private final CategorieRepository categorieRepository;
     private final DemandeMapper demandeMapper;
     private final WebClient webClient;
 
@@ -42,15 +45,14 @@ public class DemandeServiceImpl implements DemandeService {
     @Value("${service.url.matching}")
     private String matchingServiceUrl;
 
-    @Value("${service.url.paiements}")
-    private String paiementsServiceUrl;
-
     public DemandeServiceImpl(
             DemandeRepository demandeRepository,
+            CategorieRepository categorieRepository,
             DemandeMapper demandeMapper,
             WebClient webClient
     ) {
         this.demandeRepository = demandeRepository;
+        this.categorieRepository = categorieRepository;
         this.demandeMapper = demandeMapper;
         this.webClient = webClient;
     }
@@ -61,6 +63,16 @@ public class DemandeServiceImpl implements DemandeService {
 
         // 1. Créer et sauvegarder la demande initiale
         Demande demande = demandeMapper.toEntity(dto, userId);
+
+        // 2. Associer la catégorie si fournie
+        if (dto.categorieId() != null && !dto.categorieId().isBlank()) {
+            Categorie categorie = categorieRepository.findById(dto.categorieId())
+                    .orElseThrow(() -> new ResourceNotFoundException(
+                            "Catégorie non trouvée avec l'ID: " + dto.categorieId()));
+            demande.setCategorie(categorie);
+            logger.info("Catégorie '{}' associée à la demande", categorie.getNom());
+        }
+
         demande = demandeRepository.save(demande);
 
         final Long demandeId = demande.getId();
@@ -123,28 +135,7 @@ public class DemandeServiceImpl implements DemandeService {
             logger.error("Erreur lors de l'appel au service Matching pour la demande ID: {}", demandeId, e);
         }
 
-        // 4. Appel asynchrone au Service Paiements pour initier le paiement
-        try {
-            appelServicePaiementsInitier(demandeId, demande.getDevisEstime(), userId);
-            logger.info("Appel au service Paiements effectué pour la demande ID: {}", demandeId);
-        } catch (Exception e) {
-            logger.error("Erreur lors de l'appel au service Paiements pour la demande ID: {}", demandeId, e);
-        }
-
         return demandeMapper.toResponseDTO(demande);
-    }
-
-    @Override
-    public void mettreAJourStatutPaiement(Long demandeId, PaiementStatusUpdateDTO dto) {
-        logger.info("Mise à jour du statut de paiement pour la demande ID: {} -> {}", demandeId, dto.nouveauStatut());
-
-        Demande demande = demandeRepository.findById(demandeId)
-                .orElseThrow(() -> new ResourceNotFoundException("Demande non trouvée avec l'ID: " + demandeId));
-
-        demande.setStatutPaiement(dto.nouveauStatut());
-        demandeRepository.save(demande);
-
-        logger.info("Statut de paiement mis à jour avec succès pour la demande ID: {}", demandeId);
     }
 
     @Override
@@ -258,33 +249,6 @@ public class DemandeServiceImpl implements DemandeService {
 
         } catch (Exception e) {
             logger.error("Exception lors de l'appel au service Matching", e);
-        }
-    }
-
-    /**
-     * Appel au Service Paiements pour initier un paiement
-     */
-    private void appelServicePaiementsInitier(Long demandeId, BigDecimal montant, Long userId) {
-        try {
-            logger.debug("Appel au service Paiements pour initier le paiement de la demande ID: {}", demandeId);
-
-            Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("demandeId", demandeId);
-            requestBody.put("montant", montant);
-            requestBody.put("clientId", userId);
-
-            webClient.post()
-                    .uri(paiementsServiceUrl + "/initier")
-                    .bodyValue(requestBody)
-                    .retrieve()
-                    .bodyToMono(String.class)
-                    .subscribe(
-                            response -> logger.info("Service Paiements appelé avec succès: {}", response),
-                            error -> logger.error("Erreur lors de l'appel au service Paiements", error)
-                    );
-
-        } catch (Exception e) {
-            logger.error("Exception lors de l'appel au service Paiements", e);
         }
     }
 }
