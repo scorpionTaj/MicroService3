@@ -178,27 +178,29 @@ public class DemandeServiceImpl implements DemandeService {
 
     /**
      * Appel au Service Itinéraires (MS4) pour obtenir un itinéraire
-     * Utilise l'endpoint /routes/demande-info du service Itinéraires
+     * Utilise l'endpoint /routes/address du service Itinéraires
+     * Endpoint: POST /api/routes/address
      */
     private ItineraireResponseDTO appelServiceItineraires(String adresseDepart, String adresseDestination, Long userId, Double volume, String natureMarchandise, java.time.LocalDateTime dateDepart) {
         try {
-            logger.debug("Appel au service Itinéraires: {} -> {}", adresseDepart, adresseDestination);
+            logger.info("Appel au service Itinéraires: {} -> {}", adresseDepart, adresseDestination);
 
+            // Construire le body selon l'API MS4 /routes/address
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("userId", userId != null ? userId.toString() : "unknown");
-            requestBody.put("adresseDepart", adresseDepart);
-            requestBody.put("adresseDestination", adresseDestination);
-            requestBody.put("volume", volume);
-            requestBody.put("natureMarchandise", natureMarchandise);
-            if (dateDepart != null) {
-                requestBody.put("dateDepart", dateDepart.toString());
-            }
+            requestBody.put("originAddress", adresseDepart);
+            requestBody.put("destinationAddress", adresseDestination);
+            requestBody.put("userId", userId != null ? userId.toString() : "anonymous");
+            requestBody.put("includeReturn", false);
+
+            logger.debug("Request body pour MS4: {}", requestBody);
 
             return webClient.post()
-                    .uri(itinerairesServiceUrl + "/demande-info")
+                    .uri(itinerairesServiceUrl + "/address")
                     .bodyValue(requestBody)
                     .retrieve()
                     .bodyToMono(ItineraireResponseDTO.class)
+                    .doOnNext(response -> logger.info("Réponse MS4: routeId={}, distance={} km, durée={} min", 
+                            response.routeId(), response.totalDistanceKm(), response.totalDurationMin()))
                     .onErrorResume(e -> {
                         logger.error("Erreur lors de l'appel au service Itinéraires: {}", e.getMessage());
                         return Mono.empty();
