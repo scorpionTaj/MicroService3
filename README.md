@@ -273,27 +273,45 @@ Authorization: Bearer <jwt_token>
 
 ## Authentification JWT
 
-### Tokens de test (valides 1 an)
+### Configuration (compatible avec Service Utilisateurs - Microservice 1)
 
-**Client (userId=1):**
+Ce service utilise la même clé JWT que le Service Utilisateurs pour permettre le Single Sign-On (SSO) entre microservices.
 
+| Paramètre | Valeur |
+|-----------|--------|
+| **Algorithme** | HS256 |
+| **Secret** | `transport_marchandises_api2025vs2026` |
+| **Header** | `Authorization: Bearer <token>` |
+| **Rôles supportés** | `CLIENT`, `PRESTATAIRE`, `ADMIN` |
+
+### Obtenir un token depuis le Service Utilisateurs
+
+```http
+POST http://172.30.80.11:31019/account/login/
+Content-Type: application/json
+
+{
+  "email": "votre_email@example.com",
+  "password": "votre_mot_de_passe"
+}
 ```
-eyJhbGciOiJIUzM4NCJ9.eyJyb2xlIjoiQ0xJRU5UIiwidXNlcklkIjoxLCJzdWIiOiIxIiwiaWF0IjoxNzY0MTA4NjQ4LCJleHAiOjE3OTU2NDQ2NDh9.MsAIo8mq0sGFYTZ5XNK8oHU-fcQhZNCRWIJ_CxTtB2sau88MBHz4JiO6-DhhqHnl
+
+**Réponse:**
+```json
+{
+  "access": "<jwt_token>",
+  "refresh": "<refresh_token>"
+}
 ```
 
-**Admin (userId=2):**
+### Utiliser le token avec ce service
 
-```
-eyJhbGciOiJIUzM4NCJ9.eyJyb2xlIjoiQURNSU4iLCJ1c2VySWQiOjIsInN1YiI6IjIiLCJpYXQiOjE3NjQxMDg2NDksImV4cCI6MTc5NTY0NDY0OX0.8PeDf_FMo6_e7sIWNVV-UeNXzrM4qobpQikw0jBBMFsQMomi2e-bN8PX-QFlggu9
-```
-
-**Transporteur (userId=3):**
-
-```
-eyJhbGciOiJIUzM4NCJ9.eyJyb2xlIjoiVFJBTlNQT1JURVVSIiwidXNlcklkIjozLCJzdWIiOiIzIiwiaWF0IjoxNzY0MTA4NjQ5LCJleHAiOjE3OTU2NDQ2NDl9.KKNKKVgXw0eHXsS3rErM1eDyyLN-2SZjUW6tJrJ0gA_rD7Uuus3Zk3Xjt1MDX48d
+```http
+GET http://172.30.80.11:31029/api/v1/demandes
+Authorization: Bearer <access_token>
 ```
 
-### Générer de nouveaux tokens
+### Générer des tokens de test (développement uniquement)
 
 ```bash
 ./mvnw compile exec:java "-Dexec.mainClass=ma.tna.microservice3.util.JwtTokenGenerator"
@@ -309,13 +327,18 @@ Authorization: Bearer <token>
 
 ```json
 {
-  "sub": "1",
+  "sub": "user@email.com",
+  "user_id": 1,
   "userId": 1,
   "role": "CLIENT",
+  "user_type": "CLIENT",
+  "email": "user@email.com",
   "iat": 1764108648,
   "exp": 1795644648
 }
 ```
+
+> **Note:** Le service supporte plusieurs formats de claims (`userId`/`user_id`, `role`/`user_type`) pour la compatibilité avec différents générateurs de tokens.
 
 ---
 
@@ -355,8 +378,9 @@ GET /actuator/health/readiness  → Application prête ?
 | `SPRING_DATASOURCE_URL`      | URL de connexion PostgreSQL | `jdbc:postgresql://localhost:5433/demandes_db` |
 | `SPRING_DATASOURCE_USERNAME` | Utilisateur PostgreSQL      | `demandes_user`                                |
 | `SPRING_DATASOURCE_PASSWORD` | Mot de passe PostgreSQL     | `demandes_password`                            |
-| `JWT_SECRET`                 | Clé secrète JWT (Base64)    | Voir `application.properties`                  |
-| `SERVICE_URL_ITINERAIRES`    | URL Service Itinéraires     | `http://localhost:8084/api/v1/itineraires`     |
+| `JWT_SECRET`                 | Clé secrète JWT (texte brut)| `transport_marchandises_api2025vs2026`         |
+| `SERVICE_URL_UTILISATEURS`   | URL Service Utilisateurs    | `http://172.30.80.11:31019/account`            |
+| `SERVICE_URL_ITINERAIRES`    | URL Service Itinéraires     | `http://172.30.80.11:31030/api/routes`         |
 | `SERVICE_URL_TARIFICATION`   | URL Service Tarification    | `http://localhost:8085/api/v1/tarifs`          |
 | `SERVICE_URL_MATCHING`       | URL Service Matching        | `http://localhost:8088/api/v1/matching`        |
 

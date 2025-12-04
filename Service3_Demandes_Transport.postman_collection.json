@@ -2,7 +2,7 @@
   "info": {
     "name": "Service 3 - Demandes de Transport (Complete)",
     "_postman_id": "service3-demandes-transport-complete",
-    "description": "Collection Postman complète pour tester le Service 3 : Demandes de Transport et Catégories de Marchandises\n\n## 📚 Documentation API\nCe service dispose de plusieurs façons d'accéder à la documentation :\n- **/** - Documentation JSON personnalisée avec exemples de test\n- **/swagger-ui.html** - Interface Swagger UI interactive (ouvrir dans navigateur)\n- **/v3/api-docs** - Spécification OpenAPI 3.0 standard\n\n## Instructions\n1. Le token JWT de test est déjà configuré et valide jusqu'en 2030\n2. Consultez la section 📚 API Documentation pour accéder aux docs sans authentification\n3. Lancez 'Health Check' pour vérifier que le service fonctionne\n4. Testez les catégories (lecture publique, écriture avec JWT)\n5. Créez une demande avec 'Créer une Demande' (peut inclure une catégorie)\n6. Copiez l'ID de la demande créée (automatiquement sauvegardé dans 'demande_id')\n\n## Endpoints Principaux - Demandes\n- POST /api/v1/demandes - Créer une demande\n- GET /api/v1/demandes - Lister mes demandes\n- GET /api/v1/demandes/{id} - Voir une demande\n- PUT /api/v1/demandes/{id}/validation - Valider une demande\n\n## Endpoints Principaux - Catégories\n- GET /api/v1/categories - Lister les catégories (public)\n- GET /api/v1/categories/{id} - Voir une catégorie (public)\n- GET /api/v1/categories/search?keyword= - Rechercher (public)\n- GET /api/v1/categories/filter/* - Filtrer (public)\n- POST /api/v1/categories - Créer une catégorie (JWT)\n- PUT /api/v1/categories/{id} - Modifier (JWT)\n- DELETE /api/v1/categories/{id} - Supprimer (JWT)",
+    "description": "Collection Postman complète pour tester le Service 3 : Demandes de Transport et Catégories de Marchandises\n\n## 🔐 Authentification JWT\nCe service utilise le même système JWT que le Service Utilisateurs (Microservice 1).\n- **Secret partagé**: transport_marchandises_api2025vs2026\n- **Algorithme**: HS256\n- **Obtenir un token**: POST http://172.30.80.11:31019/account/login/\n\n## 📚 Documentation API\nCe service dispose de plusieurs façons d'accéder à la documentation :\n- **/** - Documentation JSON personnalisée avec exemples de test\n- **/swagger-ui.html** - Interface Swagger UI interactive (ouvrir dans navigateur)\n- **/v3/api-docs** - Spécification OpenAPI 3.0 standard\n\n## Instructions\n1. Utilisez '🔐 Login (Service Utilisateurs)' pour obtenir un token JWT\n2. Ou utilisez le token de test déjà configuré\n3. Lancez 'Health Check' pour vérifier que le service fonctionne\n4. Testez les catégories (lecture publique, écriture avec JWT)\n5. Créez une demande avec 'Créer une Demande'\n\n## Endpoints Principaux - Demandes\n- POST /api/v1/demandes - Créer une demande\n- GET /api/v1/demandes - Lister mes demandes\n- GET /api/v1/demandes/{id} - Voir une demande\n- PUT /api/v1/demandes/{id}/validation - Valider une demande\n\n## Endpoints Principaux - Catégories\n- GET /api/v1/categories - Lister les catégories (public)\n- POST /api/v1/categories - Créer une catégorie (JWT)\n- PUT /api/v1/categories/{id} - Modifier (JWT)\n- DELETE /api/v1/categories/{id} - Supprimer (JWT)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -12,10 +12,22 @@
       "type": "string"
     },
     {
-      "key": "jwt_token",
-      "value": "eyJhbGciOiJIUzM4NCJ9.eyJyb2xlIjoiQ0xJRU5UIiwidXNlcklkIjoxLCJzdWIiOiIxIiwiaWF0IjoxNzY0MTA4NjQ4LCJleHAiOjE3OTU2NDQ2NDh9.MsAIo8mq0sGFYTZ5XNK8oHU-fcQhZNCRWIJ_CxTtB2sau88MBHz4JiO6-DhhqHnl",
+      "key": "authServiceUrl",
+      "value": "http://172.30.80.11:31019",
       "type": "string",
-      "description": "Token JWT valide pour 1 an - userId=1, role=ROLE_CLIENT"
+      "description": "URL du Service Utilisateurs (Microservice 1) pour l'authentification"
+    },
+    {
+      "key": "itineraireServiceUrl",
+      "value": "http://172.30.80.11:31030",
+      "type": "string",
+      "description": "URL du Service Itinéraires (Microservice 4)"
+    },
+    {
+      "key": "jwt_token",
+      "value": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiQ0xJRU5UIiwidXNlcl90eXBlIjoiQ0xJRU5UIiwidXNlcl9pZCI6MSwidXNlcklkIjoxLCJlbWFpbCI6ImNsaWVudF90ZXN0QGVtYWlsLmNvbSIsInN1YiI6ImNsaWVudF90ZXN0QGVtYWlsLmNvbSIsImlhdCI6MTc2NDg2NDU3NCwiZXhwIjoxNzY0OTUwOTc0fQ.CFpCtB--ljTcI4DTGvrqUHtkhwjKxURvuFUsGWeZUJE",
+      "type": "string",
+      "description": "Token JWT compatible avec Service Utilisateurs (HS256, secret: transport_marchandises_api2025vs2026)"
     },
     {
       "key": "demande_id",
@@ -31,6 +43,77 @@
     }
   ],
   "item": [
+    {
+      "name": "🔐 Authentication (Service Utilisateurs)",
+      "item": [
+        {
+          "name": "Login - Obtenir Token JWT",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.access) {",
+                  "        pm.collectionVariables.set('jwt_token', jsonData.access);",
+                  "        console.log('Token JWT sauvegardé avec succès!');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"votre_email@example.com\",\n  \"password\": \"votre_mot_de_passe\"\n}"
+            },
+            "url": {
+              "raw": "{{authServiceUrl}}/account/login/",
+              "host": ["{{authServiceUrl}}"],
+              "path": ["account", "login", ""]
+            },
+            "description": "Authentification via le Service Utilisateurs (Microservice 1).\n\nLe token retourné ('access') est automatiquement sauvegardé dans la variable 'jwt_token' pour les requêtes suivantes.\n\n**Configuration JWT:**\n- Algorithme: HS256\n- Secret: transport_marchandises_api2025vs2026"
+          },
+          "response": []
+        },
+        {
+          "name": "Refresh Token",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refresh\": \"{{refresh_token}}\"\n}"
+            },
+            "url": {
+              "raw": "{{authServiceUrl}}/account/refresh/",
+              "host": ["{{authServiceUrl}}"],
+              "path": ["account", "refresh", ""]
+            },
+            "description": "Rafraîchir un token JWT expiré"
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints d'authentification du Service Utilisateurs (Microservice 1)"
+    },
     {
       "name": "📚 API Documentation",
       "item": [

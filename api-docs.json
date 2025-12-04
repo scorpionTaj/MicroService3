@@ -5,6 +5,39 @@
     "version": "1.0.0",
     "baseUrl": "/api/v1"
   },
+  "authentication": {
+    "type": "JWT Bearer Token",
+    "algorithm": "HS256",
+    "secret": "transport_marchandises_api2025vs2026 (partagé avec Service Utilisateurs)",
+    "obtainToken": {
+      "endpoint": "POST http://172.30.80.11:31019/account/login/",
+      "body": {
+        "email": "votre_email@example.com",
+        "password": "votre_mot_de_passe"
+      },
+      "response": {
+        "access": "eyJhbGciOiJIUzI1NiJ9...",
+        "refresh": "eyJhbGciOiJIUzI1NiJ9..."
+      }
+    },
+    "claims": {
+      "user_id": "ID de l'utilisateur (nombre)",
+      "user_type": "Type: CLIENT, PRESTATAIRE, ADMIN",
+      "email": "Email de l'utilisateur",
+      "sub": "Subject (email ou ID)"
+    },
+    "testToken": "eyJhbGciOiJIUzI1NiJ9.eyJyb2xlIjoiQ0xJRU5UIiwidXNlcl90eXBlIjoiQ0xJRU5UIiwidXNlcl9pZCI6MSwidXNlcklkIjoxLCJlbWFpbCI6ImNsaWVudF90ZXN0QGVtYWlsLmNvbSIsInN1YiI6ImNsaWVudF90ZXN0QGVtYWlsLmNvbSIsImlhdCI6MTc2NDg2NDU3NCwiZXhwIjoxNzY0OTUwOTc0fQ.CFpCtB--ljTcI4DTGvrqUHtkhwjKxURvuFUsGWeZUJE"
+  },
+  "externalServices": {
+    "utilisateurs": {
+      "url": "http://172.30.80.11:31019",
+      "description": "Service Utilisateurs (Microservice 1) - Authentification et gestion des comptes"
+    },
+    "itineraires": {
+      "url": "http://172.30.80.11:31030",
+      "description": "Service Itinéraires (Microservice 4) - Calcul des routes et distances"
+    }
+  },
   "endpoints": [
     {
       "method": "POST",

@@ -78,21 +78,29 @@ public class DemandeServiceImpl implements DemandeService {
         final Long demandeId = demande.getId();
 
         try {
-            // 2. Appel au Service Itinéraires (non bloquant)
+            // 2. Appel au Service Itinéraires (MS4) pour calculer l'itinéraire
             ItineraireResponseDTO itineraire = appelServiceItineraires(
                     demande.getAdresseDepart(),
-                    demande.getAdresseDestination()
+                    demande.getAdresseDestination(),
+                    userId,
+                    demande.getVolume(),
+                    demande.getNatureMarchandise(),
+                    demande.getDateDepart()
             );
 
-            if (itineraire != null) {
-                demande.setItineraireAssocieId(itineraire.id());
-                logger.info("Itinéraire associé ID: {} pour la demande ID: {}", itineraire.id(), demandeId);
+            if (itineraire != null && itineraire.routeId() != null) {
+                demande.setItineraireAssocieId(itineraire.routeId());
+                demande.setDistanceKm(itineraire.totalDistanceKm());
+                demande.setDureeEstimeeMin(itineraire.totalDurationMin());
+                logger.info("Itinéraire associé ID: {} (distance: {} km, durée: {} min) pour la demande ID: {}", 
+                        itineraire.routeId(), itineraire.totalDistanceKm(), itineraire.totalDurationMin(), demandeId);
             }
 
-            // 3. Appel au Service Tarification (non bloquant)
+            // 3. Appel au Service Tarification pour obtenir un devis
+            // Note: Le service tarification peut utiliser la distance pour calculer le prix
             TarifResponseDTO tarif = appelServiceTarification(
                     demande.getVolume(),
-                    demande.getItineraireAssocieId()
+                    demande.getDistanceKm()
             );
 
             if (tarif != null) {
@@ -169,22 +177,30 @@ public class DemandeServiceImpl implements DemandeService {
     // ============ Méthodes privées pour les appels inter-services ============
 
     /**
-     * Appel au Service Itinéraires pour obtenir un itinéraire
+     * Appel au Service Itinéraires (MS4) pour obtenir un itinéraire
+     * Utilise l'endpoint /routes/demande-info du service Itinéraires
      */
-    private ItineraireResponseDTO appelServiceItineraires(String adresseDepart, String adresseDestination) {
+    private ItineraireResponseDTO appelServiceItineraires(String adresseDepart, String adresseDestination, Long userId, Double volume, String natureMarchandise, java.time.LocalDateTime dateDepart) {
         try {
             logger.debug("Appel au service Itinéraires: {} -> {}", adresseDepart, adresseDestination);
 
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("userId", userId != null ? userId.toString() : "unknown");
+            requestBody.put("adresseDepart", adresseDepart);
+            requestBody.put("adresseDestination", adresseDestination);
+            requestBody.put("volume", volume);
+            requestBody.put("natureMarchandise", natureMarchandise);
+            if (dateDepart != null) {
+                requestBody.put("dateDepart", dateDepart.toString());
+            }
+
             return webClient.post()
-                    .uri(itinerairesServiceUrl + "/calculer")
-                    .bodyValue(Map.of(
-                            "pointDepart", adresseDepart,
-                            "pointArrivee", adresseDestination
-                    ))
+                    .uri(itinerairesServiceUrl + "/demande-info")
+                    .bodyValue(requestBody)
                     .retrieve()
                     .bodyToMono(ItineraireResponseDTO.class)
                     .onErrorResume(e -> {
-                        logger.error("Erreur lors de l'appel au service Itinéraires", e);
+                        logger.error("Erreur lors de l'appel au service Itinéraires: {}", e.getMessage());
                         return Mono.empty();
                     })
                     .block();
@@ -196,16 +212,25 @@ public class DemandeServiceImpl implements DemandeService {
     }
 
     /**
-     * Appel au Service Tarification pour obtenir un devis
+     * Surcharge pour compatibilité - appel simplifié
      */
-    private TarifResponseDTO appelServiceTarification(Double volume, Long itineraireId) {
+    private ItineraireResponseDTO appelServiceItineraires(String adresseDepart, String adresseDestination) {
+        return appelServiceItineraires(adresseDepart, adresseDestination, null, null, null, null);
+    }
+
+    /**
+     * Appel au Service Tarification pour obtenir un devis
+     * @param volume Volume de la marchandise en m³
+     * @param distanceKm Distance en kilomètres (depuis le service itinéraires)
+     */
+    private TarifResponseDTO appelServiceTarification(Double volume, Double distanceKm) {
         try {
-            logger.debug("Appel au service Tarification: volume={}, itineraireId={}", volume, itineraireId);
+            logger.debug("Appel au service Tarification: volume={}, distanceKm={}", volume, distanceKm);
 
             Map<String, Object> requestBody = new HashMap<>();
             requestBody.put("volume", volume);
-            if (itineraireId != null) {
-                requestBody.put("itineraireId", itineraireId);
+            if (distanceKm != null) {
+                requestBody.put("distanceKm", distanceKm);
             }
 
             return webClient.post()
@@ -215,19 +240,31 @@ public class DemandeServiceImpl implements DemandeService {
                     .bodyToMono(TarifResponseDTO.class)
                     .onErrorResume(e -> {
                         logger.error("Erreur lors de l'appel au service Tarification", e);
-                        // Retourner un devis par défaut en cas d'erreur
+                        // Retourner un devis par défaut en cas d'erreur (basé sur volume et distance)
+                        BigDecimal defaultDevis = calculateDefaultDevis(volume, distanceKm);
                         return Mono.just(new TarifResponseDTO(
-                                BigDecimal.valueOf(100.0),
+                                defaultDevis,
                                 "Devis estimé (service indisponible)",
-                                itineraireId
+                                null
                         ));
                     })
                     .block();
 
         } catch (Exception e) {
             logger.error("Exception lors de l'appel au service Tarification", e);
-            return new TarifResponseDTO(BigDecimal.valueOf(100.0), "Devis estimé (erreur)", itineraireId);
+            BigDecimal defaultDevis = calculateDefaultDevis(volume, distanceKm);
+            return new TarifResponseDTO(defaultDevis, "Devis estimé (erreur)", null);
         }
+    }
+
+    /**
+     * Calcul d'un devis par défaut basé sur le volume et la distance
+     */
+    private BigDecimal calculateDefaultDevis(Double volume, Double distanceKm) {
+        double basePrice = 50.0; // Prix de base
+        double volumeRate = volume != null ? volume * 5.0 : 0; // 5 MAD par m³
+        double distanceRate = distanceKm != null ? distanceKm * 2.0 : 0; // 2 MAD par km
+        return BigDecimal.valueOf(basePrice + volumeRate + distanceRate);
     }
 
     /**

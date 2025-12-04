@@ -77,10 +77,22 @@ public class Demande {
     private StatutValidation statutValidation = StatutValidation.EN_ATTENTE_CLIENT;
 
     /**
-     * ID de l'itinéraire associé (provenant du Service 4)
+     * ID de l'itinéraire associé (UUID provenant du Service 4 - Itinéraires)
+     */
+    @Column(length = 100)
+    private String itineraireAssocieId;
+
+    /**
+     * Distance totale calculée par le service itinéraires (en km)
      */
     @Column
-    private Long itineraireAssocieId;
+    private Double distanceKm;
+
+    /**
+     * Durée totale estimée par le service itinéraires (en minutes)
+     */
+    @Column
+    private Integer dureeEstimeeMin;
 
     /**
      * ID du groupe de transport (pour le regroupement)
