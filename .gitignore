@@ -85,3 +85,4 @@ logs/
 # Spring Boot DevTools
 .spring-boot-devtools.properties
 
+docker-compose.yml

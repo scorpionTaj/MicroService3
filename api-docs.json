@@ -1,7 +1,7 @@
 {
   "info": {
     "title": "Microservice 3 - Service Demandes Transport API",
-    "description": "API de gestion des demandes de transport pour le système de transport",
+    "description": "API de gestion des demandes de transport et catégories de marchandises pour le système de transport",
     "version": "1.0.0",
     "baseUrl": "/api/v1"
   },
@@ -17,12 +17,13 @@
         "natureMarchandise": "Matériaux de construction",
         "dateDepart": "2025-12-15T08:00:00",
         "adresseDepart": "123 Rue Mohammed V, Casablanca, Maroc",
-        "adresseDestination": "456 Avenue Hassan II, Rabat, Maroc"
+        "adresseDestination": "456 Avenue Hassan II, Rabat, Maroc",
+        "categorieId": "cat-005-constr"
       },
       "testExamples": {
-        "powershell": "$headers = @{'Content-Type'='application/json'; 'Authorization'='Bearer YOUR_JWT_TOKEN'}; $body = '{\"volume\":25.5,\"natureMarchandise\":\"Matériaux de construction\",\"dateDepart\":\"2025-12-15T08:00:00\",\"adresseDepart\":\"123 Rue Mohammed V, Casablanca\",\"adresseDestination\":\"456 Avenue Hassan II, Rabat\"}'; Invoke-RestMethod -Uri 'http://localhost:8083/api/v1/demandes' -Method POST -Headers $headers -Body $body",
-        "curl": "curl -X POST 'http://localhost:8083/api/v1/demandes' -H 'Content-Type: application/json' -H 'Authorization: Bearer YOUR_JWT_TOKEN' -d '{\"volume\":25.5,\"natureMarchandise\":\"Matériaux de construction\",\"dateDepart\":\"2025-12-15T08:00:00\",\"adresseDepart\":\"123 Rue Mohammed V, Casablanca\",\"adresseDestination\":\"456 Avenue Hassan II, Rabat\"}'",
-        "fetch": "fetch('http://localhost:8083/api/v1/demandes', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer YOUR_JWT_TOKEN'}, body:JSON.stringify({volume:25.5,natureMarchandise:'Matériaux de construction',dateDepart:'2025-12-15T08:00:00',adresseDepart:'123 Rue Mohammed V, Casablanca',adresseDestination:'456 Avenue Hassan II, Rabat'})}).then(r=>r.json()).then(console.log)"
+        "powershell": "$headers = @{'Content-Type'='application/json'; 'Authorization'='Bearer YOUR_JWT_TOKEN'}; $body = '{\"volume\":25.5,\"natureMarchandise\":\"Matériaux de construction\",\"dateDepart\":\"2025-12-15T08:00:00\",\"adresseDepart\":\"123 Rue Mohammed V, Casablanca\",\"adresseDestination\":\"456 Avenue Hassan II, Rabat\",\"categorieId\":\"cat-005-constr\"}'; Invoke-RestMethod -Uri 'http://localhost:8083/api/v1/demandes' -Method POST -Headers $headers -Body $body",
+        "curl": "curl -X POST 'http://localhost:8083/api/v1/demandes' -H 'Content-Type: application/json' -H 'Authorization: Bearer YOUR_JWT_TOKEN' -d '{\"volume\":25.5,\"natureMarchandise\":\"Matériaux de construction\",\"dateDepart\":\"2025-12-15T08:00:00\",\"adresseDepart\":\"123 Rue Mohammed V, Casablanca\",\"adresseDestination\":\"456 Avenue Hassan II, Rabat\",\"categorieId\":\"cat-005-constr\"}'",
+        "fetch": "fetch('http://localhost:8083/api/v1/demandes', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer YOUR_JWT_TOKEN'}, body:JSON.stringify({volume:25.5,natureMarchandise:'Matériaux de construction',dateDepart:'2025-12-15T08:00:00',adresseDepart:'123 Rue Mohammed V, Casablanca',adresseDestination:'456 Avenue Hassan II, Rabat',categorieId:'cat-005-constr'})}).then(r=>r.json()).then(console.log)"
       }
     },
     {
@@ -99,6 +100,204 @@
         "curl": "curl -X PUT 'http://localhost:8083/api/v1/demandes/1/paiement' -H 'Content-Type: application/json' -d '{\"nouveauStatut\":\"PAYEE\"}'",
         "fetch": "fetch('http://localhost:8083/api/v1/demandes/1/paiement', {method:'PUT', headers:{'Content-Type':'application/json'}, body:JSON.stringify({nouveauStatut:'PAYEE'})}).then(r=>r.json()).then(console.log)"
       }
+    },
+    {
+      "method": "GET",
+      "path": "/categories",
+      "summary": "Récupérer toutes les catégories",
+      "description": "Retourne la liste de toutes les catégories de marchandise disponibles",
+      "authentication": "None (lecture publique)",
+      "testExamples": {
+        "powershell": "Invoke-RestMethod -Uri 'http://localhost:8083/api/v1/categories' -Method GET",
+        "curl": "curl -X GET 'http://localhost:8083/api/v1/categories'",
+        "fetch": "fetch('http://localhost:8083/api/v1/categories').then(r=>r.json()).then(console.log)"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/categories/{id}",
+      "summary": "Récupérer une catégorie par ID",
+      "description": "Retourne les détails d'une catégorie spécifique",
+      "authentication": "None (lecture publique)",
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string (UUID)",
+          "required": true,
+          "description": "ID de la catégorie"
+        }
+      ],
+      "testExamples": {
+        "powershell": "Invoke-RestMethod -Uri 'http://localhost:8083/api/v1/categories/cat-001-meubles' -Method GET",
+        "curl": "curl -X GET 'http://localhost:8083/api/v1/categories/cat-001-meubles'",
+        "fetch": "fetch('http://localhost:8083/api/v1/categories/cat-001-meubles').then(r=>r.json()).then(console.log)"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/categories/nom/{nom}",
+      "summary": "Rechercher une catégorie par nom",
+      "description": "Retourne la catégorie correspondant au nom exact",
+      "authentication": "None (lecture publique)",
+      "parameters": [
+        {
+          "name": "nom",
+          "type": "string",
+          "required": true,
+          "description": "Nom exact de la catégorie"
+        }
+      ],
+      "testExamples": {
+        "powershell": "Invoke-RestMethod -Uri 'http://localhost:8083/api/v1/categories/nom/Meubles' -Method GET",
+        "curl": "curl -X GET 'http://localhost:8083/api/v1/categories/nom/Meubles'",
+        "fetch": "fetch('http://localhost:8083/api/v1/categories/nom/Meubles').then(r=>r.json()).then(console.log)"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/categories/search",
+      "summary": "Rechercher des catégories par mot-clé",
+      "description": "Retourne les catégories dont le nom contient le mot-clé",
+      "authentication": "None (lecture publique)",
+      "parameters": [
+        {
+          "name": "keyword",
+          "type": "string",
+          "required": true,
+          "description": "Mot-clé de recherche"
+        }
+      ],
+      "testExamples": {
+        "powershell": "Invoke-RestMethod -Uri 'http://localhost:8083/api/v1/categories/search?keyword=Produits' -Method GET",
+        "curl": "curl -X GET 'http://localhost:8083/api/v1/categories/search?keyword=Produits'",
+        "fetch": "fetch('http://localhost:8083/api/v1/categories/search?keyword=Produits').then(r=>r.json()).then(console.log)"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/categories/filter/fragile",
+      "summary": "Filtrer les catégories par fragilité",
+      "description": "Retourne les catégories selon leur caractère fragile",
+      "authentication": "None (lecture publique)",
+      "parameters": [
+        {
+          "name": "fragile",
+          "type": "boolean",
+          "required": true,
+          "description": "true pour les catégories fragiles, false sinon"
+        }
+      ],
+      "testExamples": {
+        "powershell": "Invoke-RestMethod -Uri 'http://localhost:8083/api/v1/categories/filter/fragile?fragile=true' -Method GET",
+        "curl": "curl -X GET 'http://localhost:8083/api/v1/categories/filter/fragile?fragile=true'",
+        "fetch": "fetch('http://localhost:8083/api/v1/categories/filter/fragile?fragile=true').then(r=>r.json()).then(console.log)"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/categories/filter/dangereux",
+      "summary": "Filtrer les catégories par dangerosité",
+      "description": "Retourne les catégories selon leur caractère dangereux",
+      "authentication": "None (lecture publique)",
+      "parameters": [
+        {
+          "name": "dangereux",
+          "type": "boolean",
+          "required": true,
+          "description": "true pour les catégories dangereuses, false sinon"
+        }
+      ],
+      "testExamples": {
+        "powershell": "Invoke-RestMethod -Uri 'http://localhost:8083/api/v1/categories/filter/dangereux?dangereux=true' -Method GET",
+        "curl": "curl -X GET 'http://localhost:8083/api/v1/categories/filter/dangereux?dangereux=true'",
+        "fetch": "fetch('http://localhost:8083/api/v1/categories/filter/dangereux?dangereux=true').then(r=>r.json()).then(console.log)"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/categories/filter/temperature",
+      "summary": "Filtrer les catégories par température",
+      "description": "Retourne les catégories selon la température requise pour le transport",
+      "authentication": "None (lecture publique)",
+      "parameters": [
+        {
+          "name": "temperature",
+          "type": "string",
+          "required": true,
+          "description": "Température requise: ambiante, refrigere, ou congele"
+        }
+      ],
+      "testExamples": {
+        "powershell": "Invoke-RestMethod -Uri 'http://localhost:8083/api/v1/categories/filter/temperature?temperature=refrigere' -Method GET",
+        "curl": "curl -X GET 'http://localhost:8083/api/v1/categories/filter/temperature?temperature=refrigere'",
+        "fetch": "fetch('http://localhost:8083/api/v1/categories/filter/temperature?temperature=refrigere').then(r=>r.json()).then(console.log)"
+      }
+    },
+    {
+      "method": "POST",
+      "path": "/categories",
+      "summary": "Créer une nouvelle catégorie",
+      "description": "Crée une nouvelle catégorie de marchandise",
+      "authentication": "Bearer JWT Token",
+      "requestBody": {
+        "nom": "Produits Électroniques",
+        "description": "Appareils électroniques et high-tech",
+        "densiteMoyenne": 350.0,
+        "fragile": true,
+        "dangereux": false,
+        "temperatureRequise": "ambiante",
+        "restrictions": "Protéger de l'humidité et des chocs"
+      },
+      "testExamples": {
+        "powershell": "$headers = @{'Content-Type'='application/json'; 'Authorization'='Bearer YOUR_JWT_TOKEN'}; $body = '{\"nom\":\"Produits Électroniques\",\"description\":\"Appareils électroniques\",\"densiteMoyenne\":350.0,\"fragile\":true,\"dangereux\":false,\"temperatureRequise\":\"ambiante\"}'; Invoke-RestMethod -Uri 'http://localhost:8083/api/v1/categories' -Method POST -Headers $headers -Body $body",
+        "curl": "curl -X POST 'http://localhost:8083/api/v1/categories' -H 'Content-Type: application/json' -H 'Authorization: Bearer YOUR_JWT_TOKEN' -d '{\"nom\":\"Produits Électroniques\",\"description\":\"Appareils électroniques\",\"densiteMoyenne\":350.0,\"fragile\":true,\"dangereux\":false,\"temperatureRequise\":\"ambiante\"}'",
+        "fetch": "fetch('http://localhost:8083/api/v1/categories', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer YOUR_JWT_TOKEN'}, body:JSON.stringify({nom:'Produits Électroniques',description:'Appareils électroniques',densiteMoyenne:350.0,fragile:true,dangereux:false,temperatureRequise:'ambiante'})}).then(r=>r.json()).then(console.log)"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/categories/{id}",
+      "summary": "Mettre à jour une catégorie",
+      "description": "Met à jour les informations d'une catégorie existante",
+      "authentication": "Bearer JWT Token",
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string (UUID)",
+          "required": true,
+          "description": "ID de la catégorie"
+        }
+      ],
+      "requestBody": {
+        "nom": "Meubles de luxe",
+        "description": "Mobilier haut de gamme",
+        "fragile": true
+      },
+      "testExamples": {
+        "powershell": "$headers = @{'Content-Type'='application/json'; 'Authorization'='Bearer YOUR_JWT_TOKEN'}; $body = '{\"nom\":\"Meubles de luxe\",\"description\":\"Mobilier haut de gamme\"}'; Invoke-RestMethod -Uri 'http://localhost:8083/api/v1/categories/cat-001-meubles' -Method PUT -Headers $headers -Body $body",
+        "curl": "curl -X PUT 'http://localhost:8083/api/v1/categories/cat-001-meubles' -H 'Content-Type: application/json' -H 'Authorization: Bearer YOUR_JWT_TOKEN' -d '{\"nom\":\"Meubles de luxe\",\"description\":\"Mobilier haut de gamme\"}'",
+        "fetch": "fetch('http://localhost:8083/api/v1/categories/cat-001-meubles', {method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer YOUR_JWT_TOKEN'}, body:JSON.stringify({nom:'Meubles de luxe',description:'Mobilier haut de gamme'})}).then(r=>r.json()).then(console.log)"
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/categories/{id}",
+      "summary": "Supprimer une catégorie",
+      "description": "Supprime définitivement une catégorie",
+      "authentication": "Bearer JWT Token",
+      "parameters": [
+        {
+          "name": "id",
+          "type": "string (UUID)",
+          "required": true,
+          "description": "ID de la catégorie"
+        }
+      ],
+      "testExamples": {
+        "powershell": "Invoke-RestMethod -Uri 'http://localhost:8083/api/v1/categories/cat-001-meubles' -Method DELETE -Headers @{'Authorization'='Bearer YOUR_JWT_TOKEN'}",
+        "curl": "curl -X DELETE 'http://localhost:8083/api/v1/categories/cat-001-meubles' -H 'Authorization: Bearer YOUR_JWT_TOKEN'",
+        "fetch": "fetch('http://localhost:8083/api/v1/categories/cat-001-meubles', {method:'DELETE', headers:{'Authorization':'Bearer YOUR_JWT_TOKEN'}}).then(r=>r.json()).then(console.log)"
+      }
     }
   ],
   "schemas": {
@@ -109,7 +308,8 @@
         "natureMarchandise": "string - Nature de la marchandise à transporter",
         "dateDepart": "datetime - Date et heure de départ (doit être dans le futur)",
         "adresseDepart": "string - Adresse de départ",
-        "adresseDestination": "string - Adresse de destination"
+        "adresseDestination": "string - Adresse de destination",
+        "categorieId": "string (UUID) - ID de la catégorie de marchandise (optionnel)"
       }
     },
     "DemandeResponse": {
@@ -127,6 +327,7 @@
         "devisEstime": "decimal - Devis estimé en MAD",
         "itineraireAssocieId": "integer - ID de l'itinéraire associé",
         "groupeId": "integer - ID du groupe de transport",
+        "categorie": "object - Informations sur la catégorie de marchandise",
         "dateCreation": "datetime - Date de création de la demande",
         "dateModification": "datetime - Date de dernière modification"
       }
@@ -136,6 +337,84 @@
       "properties": {
         "nouveauStatut": "string - Nouveau statut de paiement (EN_ATTENTE, PAYEE, REMBOURSEE)"
       }
+    },
+    "CategorieRequest": {
+      "type": "object",
+      "properties": {
+        "nom": "string - Nom de la catégorie (obligatoire)",
+        "description": "string - Description détaillée",
+        "densiteMoyenne": "number - Densité moyenne en kg/m³",
+        "fragile": "boolean - Indique si la marchandise est fragile",
+        "dangereux": "boolean - Indique si la marchandise est dangereuse",
+        "temperatureRequise": "string - Température requise (ambiante, refrigere, congele)",
+        "restrictions": "string - Restrictions spéciales pour le transport"
+      }
+    },
+    "CategorieResponse": {
+      "type": "object",
+      "properties": {
+        "idCategorie": "string (UUID) - Identifiant unique de la catégorie",
+        "nom": "string - Nom de la catégorie",
+        "description": "string - Description détaillée",
+        "densiteMoyenne": "number - Densité moyenne en kg/m³",
+        "fragile": "boolean - Indique si la marchandise est fragile",
+        "dangereux": "boolean - Indique si la marchandise est dangereuse",
+        "temperatureRequise": "string - Température requise",
+        "restrictions": "string - Restrictions spéciales",
+        "dateCreation": "datetime - Date de création",
+        "dateModification": "datetime - Date de dernière modification"
+      }
     }
-  }
+  },
+  "categoriesPredefines": [
+    {
+      "id": "cat-001-meubles",
+      "nom": "Meubles",
+      "fragile": true,
+      "temperature": "ambiante"
+    },
+    {
+      "id": "cat-002-electro",
+      "nom": "Électroménager",
+      "fragile": true,
+      "temperature": "ambiante"
+    },
+    {
+      "id": "cat-003-aliment",
+      "nom": "Produits Alimentaires",
+      "fragile": false,
+      "temperature": "refrigere"
+    },
+    {
+      "id": "cat-004-surgele",
+      "nom": "Produits Surgelés",
+      "fragile": false,
+      "temperature": "congele"
+    },
+    {
+      "id": "cat-005-constr",
+      "nom": "Matériaux de Construction",
+      "fragile": false,
+      "temperature": "ambiante"
+    },
+    {
+      "id": "cat-006-chimiq",
+      "nom": "Produits Chimiques",
+      "fragile": false,
+      "dangereux": true,
+      "temperature": "ambiante"
+    },
+    {
+      "id": "cat-007-pharma",
+      "nom": "Produits Pharmaceutiques",
+      "fragile": true,
+      "temperature": "refrigere"
+    },
+    {
+      "id": "cat-008-texti",
+      "nom": "Textiles",
+      "fragile": false,
+      "temperature": "ambiante"
+    }
+  ]
 }

@@ -42,6 +42,9 @@ public class SecurityConfig {
                         // Route webhook pour mise à jour paiement (sécurisée différemment)
                         .requestMatchers("/api/v1/demandes/*/paiement").permitAll()
 
+                        // Routes catégories publiques (lecture seule)
+                        .requestMatchers(org.springframework.http.HttpMethod.GET, "/api/v1/categories/**").permitAll()
+
                         // Swagger & OpenAPI routes (sans authentification)
                         .requestMatchers(
                                 "/",
@@ -54,6 +57,9 @@ public class SecurityConfig {
                                 "/api-docs/**",
                                 "/webjars/**"
                         ).permitAll()
+
+                        // Routes catégories modification (authentification requise)
+                        .requestMatchers("/api/v1/categories/**").authenticated()
 
                         // Toutes les autres routes nécessitent une authentification
                         .requestMatchers("/api/v1/demandes/**").authenticated()

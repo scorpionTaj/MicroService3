@@ -2,7 +2,7 @@
   "info": {
     "name": "Service 3 - Demandes de Transport (Complete)",
     "_postman_id": "service3-demandes-transport-complete",
-    "description": "Collection Postman complète pour tester le Service 3 : Demandes de Transport\n\n## 📚 Documentation API\nCe service dispose de plusieurs façons d'accéder à la documentation :\n- **/** - Documentation JSON personnalisée avec exemples de test\n- **/swagger-ui.html** - Interface Swagger UI interactive (ouvrir dans navigateur)\n- **/v3/api-docs** - Spécification OpenAPI 3.0 standard\n\n## Instructions\n1. Le token JWT de test est déjà configuré et valide jusqu'en 2030\n2. Consultez la section 📚 API Documentation pour accéder aux docs sans authentification\n3. Lancez 'Health Check' pour vérifier que le service fonctionne\n4. Créez une demande avec 'Créer une Demande'\n5. Copiez l'ID de la demande créée (automatiquement sauvegardé dans 'demande_id')\n6. Testez les autres endpoints\n\n## Endpoints Principaux\n- POST /api/v1/demandes - Créer une demande\n- GET /api/v1/demandes - Lister mes demandes\n- GET /api/v1/demandes/{id} - Voir une demande\n- PUT /api/v1/demandes/{id}/validation - Valider une demande\n- PUT /api/v1/demandes/{id}/paiement - Webhook paiement (sans auth)",
+    "description": "Collection Postman complète pour tester le Service 3 : Demandes de Transport et Catégories de Marchandises\n\n## 📚 Documentation API\nCe service dispose de plusieurs façons d'accéder à la documentation :\n- **/** - Documentation JSON personnalisée avec exemples de test\n- **/swagger-ui.html** - Interface Swagger UI interactive (ouvrir dans navigateur)\n- **/v3/api-docs** - Spécification OpenAPI 3.0 standard\n\n## Instructions\n1. Le token JWT de test est déjà configuré et valide jusqu'en 2030\n2. Consultez la section 📚 API Documentation pour accéder aux docs sans authentification\n3. Lancez 'Health Check' pour vérifier que le service fonctionne\n4. Testez les catégories (lecture publique, écriture avec JWT)\n5. Créez une demande avec 'Créer une Demande' (peut inclure une catégorie)\n6. Copiez l'ID de la demande créée (automatiquement sauvegardé dans 'demande_id')\n\n## Endpoints Principaux - Demandes\n- POST /api/v1/demandes - Créer une demande\n- GET /api/v1/demandes - Lister mes demandes\n- GET /api/v1/demandes/{id} - Voir une demande\n- PUT /api/v1/demandes/{id}/validation - Valider une demande\n- PUT /api/v1/demandes/{id}/paiement - Webhook paiement (sans auth)\n\n## Endpoints Principaux - Catégories\n- GET /api/v1/categories - Lister les catégories (public)\n- GET /api/v1/categories/{id} - Voir une catégorie (public)\n- GET /api/v1/categories/search?keyword= - Rechercher (public)\n- GET /api/v1/categories/filter/* - Filtrer (public)\n- POST /api/v1/categories - Créer une catégorie (JWT)\n- PUT /api/v1/categories/{id} - Modifier (JWT)\n- DELETE /api/v1/categories/{id} - Supprimer (JWT)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -22,6 +22,12 @@
       "value": "1",
       "type": "string",
       "description": "ID de la demande à utiliser pour les tests"
+    },
+    {
+      "key": "categorie_id",
+      "value": "cat-001-meubles",
+      "type": "string",
+      "description": "ID de la catégorie à utiliser pour les tests (UUID)"
     }
   ],
   "item": [
@@ -557,6 +563,428 @@
         }
       ],
       "description": "Exemples de différents types de demandes de transport"
+    },
+    {
+      "name": "📂 Catégories - Lecture (Public)",
+      "item": [
+        {
+          "name": "1. Lister toutes les Catégories",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "categories"]
+            },
+            "description": "Récupère toutes les catégories de marchandise disponibles. Pas d'authentification requise."
+          },
+          "response": []
+        },
+        {
+          "name": "2. Voir une Catégorie par ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories/{{categorie_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "categories", "{{categorie_id}}"]
+            },
+            "description": "Récupère les détails d'une catégorie spécifique par son ID"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Rechercher par Nom",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories/nom/Meubles",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "categories", "nom", "Meubles"]
+            },
+            "description": "Recherche une catégorie par son nom exact"
+          },
+          "response": []
+        },
+        {
+          "name": "4. Rechercher par Mot-clé",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories/search?keyword=Produits",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "categories", "search"],
+              "query": [
+                {
+                  "key": "keyword",
+                  "value": "Produits"
+                }
+              ]
+            },
+            "description": "Recherche les catégories dont le nom contient le mot-clé"
+          },
+          "response": []
+        },
+        {
+          "name": "5. Filtrer par Fragilité (Fragiles)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories/filter/fragile?fragile=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "categories", "filter", "fragile"],
+              "query": [
+                {
+                  "key": "fragile",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Récupère toutes les catégories de marchandises fragiles"
+          },
+          "response": []
+        },
+        {
+          "name": "6. Filtrer par Fragilité (Non Fragiles)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories/filter/fragile?fragile=false",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "categories", "filter", "fragile"],
+              "query": [
+                {
+                  "key": "fragile",
+                  "value": "false"
+                }
+              ]
+            },
+            "description": "Récupère toutes les catégories de marchandises non fragiles"
+          },
+          "response": []
+        },
+        {
+          "name": "7. Filtrer par Dangerosité",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories/filter/dangereux?dangereux=true",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "categories", "filter", "dangereux"],
+              "query": [
+                {
+                  "key": "dangereux",
+                  "value": "true"
+                }
+              ]
+            },
+            "description": "Récupère toutes les catégories de marchandises dangereuses"
+          },
+          "response": []
+        },
+        {
+          "name": "8. Filtrer par Température (Ambiante)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories/filter/temperature?temperature=ambiante",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "categories", "filter", "temperature"],
+              "query": [
+                {
+                  "key": "temperature",
+                  "value": "ambiante"
+                }
+              ]
+            },
+            "description": "Récupère les catégories nécessitant une température ambiante"
+          },
+          "response": []
+        },
+        {
+          "name": "9. Filtrer par Température (Réfrigéré)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories/filter/temperature?temperature=refrigere",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "categories", "filter", "temperature"],
+              "query": [
+                {
+                  "key": "temperature",
+                  "value": "refrigere"
+                }
+              ]
+            },
+            "description": "Récupère les catégories nécessitant une réfrigération"
+          },
+          "response": []
+        },
+        {
+          "name": "10. Filtrer par Température (Congelé)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories/filter/temperature?temperature=congele",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "categories", "filter", "temperature"],
+              "query": [
+                {
+                  "key": "temperature",
+                  "value": "congele"
+                }
+              ]
+            },
+            "description": "Récupère les catégories nécessitant une congélation"
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints de lecture des catégories (accès public sans authentification)"
+    },
+    {
+      "name": "📂 Catégories - Gestion (Auth)",
+      "item": [
+        {
+          "name": "1. Créer une Catégorie",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('categorie_id', jsonData.idCategorie);",
+                  "    console.log('Catégorie créée avec ID: ' + jsonData.idCategorie);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Produits Électroniques\",\n  \"description\": \"Appareils électroniques et high-tech (smartphones, tablettes, etc.)\",\n  \"densiteMoyenne\": 350.0,\n  \"fragile\": true,\n  \"dangereux\": false,\n  \"temperatureRequise\": \"ambiante\",\n  \"restrictions\": \"Protéger de l'humidité et des chocs. Manipulation délicate requise.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "categories"]
+            },
+            "description": "Crée une nouvelle catégorie de marchandise. L'ID est automatiquement sauvegardé."
+          },
+          "response": []
+        },
+        {
+          "name": "2. Modifier une Catégorie",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Produits Électroniques Premium\",\n  \"description\": \"Appareils électroniques haut de gamme\",\n  \"fragile\": true,\n  \"restrictions\": \"Manipulation très délicate. Emballage d'origine obligatoire.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories/{{categorie_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "categories", "{{categorie_id}}"]
+            },
+            "description": "Met à jour une catégorie existante"
+          },
+          "response": []
+        },
+        {
+          "name": "3. Supprimer une Catégorie",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories/{{categorie_id}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "categories", "{{categorie_id}}"]
+            },
+            "description": "Supprime définitivement une catégorie"
+          },
+          "response": []
+        }
+      ],
+      "description": "Endpoints de gestion des catégories (authentification JWT requise)"
+    },
+    {
+      "name": "📂 Catégories - Exemples",
+      "item": [
+        {
+          "name": "Catégorie - Produits Pharmaceutiques",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('categorie_id', jsonData.idCategorie);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Médicaments Sensibles\",\n  \"description\": \"Produits pharmaceutiques nécessitant un contrôle strict de température\",\n  \"densiteMoyenne\": 280.0,\n  \"fragile\": true,\n  \"dangereux\": false,\n  \"temperatureRequise\": \"refrigere\",\n  \"restrictions\": \"Maintenir entre 2°C et 8°C. Ne pas exposer à la lumière directe.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "categories"]
+            },
+            "description": "Exemple: Catégorie pour produits pharmaceutiques réfrigérés"
+          },
+          "response": []
+        },
+        {
+          "name": "Catégorie - Matières Dangereuses",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('categorie_id', jsonData.idCategorie);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Produits Chimiques Industriels\",\n  \"description\": \"Substances chimiques nécessitant un transport ADR\",\n  \"densiteMoyenne\": 1100.0,\n  \"fragile\": false,\n  \"dangereux\": true,\n  \"temperatureRequise\": \"ambiante\",\n  \"restrictions\": \"Transport ADR obligatoire. Véhicule ventilé requis. Conducteur certifié ADR.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "categories"]
+            },
+            "description": "Exemple: Catégorie pour produits chimiques dangereux"
+          },
+          "response": []
+        },
+        {
+          "name": "Catégorie - Produits Surgelés",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 201) {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.collectionVariables.set('categorie_id', jsonData.idCategorie);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"nom\": \"Glaces et Desserts Glacés\",\n  \"description\": \"Produits glacés nécessitant une chaîne du froid stricte\",\n  \"densiteMoyenne\": 550.0,\n  \"fragile\": false,\n  \"dangereux\": false,\n  \"temperatureRequise\": \"congele\",\n  \"restrictions\": \"Maintenir à -18°C minimum. Ne jamais rompre la chaîne du froid.\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/categories",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "categories"]
+            },
+            "description": "Exemple: Catégorie pour produits congelés"
+          },
+          "response": []
+        }
+      ],
+      "description": "Exemples de création de différentes catégories"
     },
     {
       "name": "🔒 Tests de Sécurité",

@@ -46,6 +46,9 @@ public record DemandeResponseDTO(
         @Schema(description = "ID du groupe de transport", example = "3", nullable = true)
         Long groupeId,
 
+        @Schema(description = "Informations sur la catégorie de marchandise", nullable = true)
+        CategorieResponseDTO categorie,
+
         @Schema(description = "Date de création de la demande", example = "2025-11-26T10:30:00")
         LocalDateTime dateCreation,
 

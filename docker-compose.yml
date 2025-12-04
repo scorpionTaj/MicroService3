@@ -81,6 +81,6 @@ volumes:
 
 networks:
   microservices-network:
-    external: true
+    driver: bridge
     # Si le réseau n'existe pas, créez-le avec:
     # docker network create microservices-network

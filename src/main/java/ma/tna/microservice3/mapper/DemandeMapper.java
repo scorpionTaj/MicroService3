@@ -1,5 +1,6 @@
 package ma.tna.microservice3.mapper;
 
+import ma.tna.microservice3.dto.CategorieResponseDTO;
 import ma.tna.microservice3.dto.DemandeRequestDTO;
 import ma.tna.microservice3.dto.DemandeResponseDTO;
 import ma.tna.microservice3.model.Demande;
@@ -12,6 +13,12 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class DemandeMapper {
+
+    private final CategorieMapper categorieMapper;
+
+    public DemandeMapper(CategorieMapper categorieMapper) {
+        this.categorieMapper = categorieMapper;
+    }
 
     /**
      * Convertit un DemandeRequestDTO en entité Demande
@@ -33,6 +40,11 @@ public class DemandeMapper {
      * Convertit une entité Demande en DemandeResponseDTO
      */
     public DemandeResponseDTO toResponseDTO(Demande demande) {
+        CategorieResponseDTO categorieDTO = null;
+        if (demande.getCategorie() != null) {
+            categorieDTO = categorieMapper.toResponseDTO(demande.getCategorie());
+        }
+
         return new DemandeResponseDTO(
                 demande.getId(),
                 demande.getClientId(),
@@ -46,6 +58,7 @@ public class DemandeMapper {
                 demande.getDevisEstime(),
                 demande.getItineraireAssocieId(),
                 demande.getGroupeId(),
+                categorieDTO,
                 demande.getDateCreation(),
                 demande.getDateModification()
         );

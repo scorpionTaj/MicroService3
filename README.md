@@ -52,6 +52,8 @@ Importez `Service3_Demandes_Transport.postman_collection.json` dans Postman - le
 
 ## Endpoints
 
+### Demandes de Transport
+
 | Méthode | Endpoint                           | Description                             | Authentification |
 | ------- | ---------------------------------- | --------------------------------------- | ---------------- |
 | POST    | `/api/v1/demandes`                 | Créer une nouvelle demande de transport | JWT requis       |
@@ -59,9 +61,29 @@ Importez `Service3_Demandes_Transport.postman_collection.json` dans Postman - le
 | GET     | `/api/v1/demandes/{id}`            | Récupérer une demande par ID            | JWT requis       |
 | PUT     | `/api/v1/demandes/{id}/validation` | Valider une demande (accepter le devis) | JWT requis       |
 | PUT     | `/api/v1/demandes/{id}/paiement`   | Webhook - Mise à jour statut paiement   | Non (interne)    |
-| GET     | `/actuator/health`                 | Health check                            | Non              |
-| GET     | `/actuator/health/liveness`        | Probe Kubernetes liveness               | Non              |
-| GET     | `/actuator/health/readiness`       | Probe Kubernetes readiness              | Non              |
+
+### Catégories de Marchandise
+
+| Méthode | Endpoint                                  | Description                            | Authentification |
+| ------- | ----------------------------------------- | -------------------------------------- | ---------------- |
+| GET     | `/api/v1/categories`                      | Lister toutes les catégories           | Non (public)     |
+| GET     | `/api/v1/categories/{id}`                 | Récupérer une catégorie par ID (UUID)  | Non (public)     |
+| GET     | `/api/v1/categories/nom/{nom}`            | Rechercher une catégorie par nom exact | Non (public)     |
+| GET     | `/api/v1/categories/search?keyword=`      | Rechercher par mot-clé                 | Non (public)     |
+| GET     | `/api/v1/categories/filter/fragile?=`     | Filtrer par fragilité                  | Non (public)     |
+| GET     | `/api/v1/categories/filter/dangereux?=`   | Filtrer par dangerosité                | Non (public)     |
+| GET     | `/api/v1/categories/filter/temperature?=` | Filtrer par température requise        | Non (public)     |
+| POST    | `/api/v1/categories`                      | Créer une nouvelle catégorie           | JWT requis       |
+| PUT     | `/api/v1/categories/{id}`                 | Modifier une catégorie                 | JWT requis       |
+| DELETE  | `/api/v1/categories/{id}`                 | Supprimer une catégorie                | JWT requis       |
+
+### Health & Monitoring
+
+| Méthode | Endpoint                     | Description                | Authentification |
+| ------- | ---------------------------- | -------------------------- | ---------------- |
+| GET     | `/actuator/health`           | Health check               | Non              |
+| GET     | `/actuator/health/liveness`  | Probe Kubernetes liveness  | Non              |
+| GET     | `/actuator/health/readiness` | Probe Kubernetes readiness | Non              |
 
 ---
 
@@ -75,17 +97,60 @@ Importez `Service3_Demandes_Transport.postman_collection.json` dans Postman - le
   "natureMarchandise": "Meubles de salon",
   "dateDepart": "2025-12-15T10:00:00",
   "adresseDepart": "123 Rue Mohammed V, Casablanca",
-  "adresseDestination": "456 Avenue Hassan II, Rabat"
+  "adresseDestination": "456 Avenue Hassan II, Rabat",
+  "categorieId": "cat-001-meubles"
 }
 ```
 
-| Champ                | Type          | Obligatoire | Validation              |
-| -------------------- | ------------- | ----------- | ----------------------- |
-| `volume`             | Double        | ✅          | Doit être positif       |
-| `natureMarchandise`  | String        | ✅          | Non vide                |
-| `dateDepart`         | LocalDateTime | ✅          | Doit être dans le futur |
-| `adresseDepart`      | String        | ✅          | Non vide                |
-| `adresseDestination` | String        | ✅          | Non vide                |
+| Champ                | Type          | Obligatoire | Validation                   |
+| -------------------- | ------------- | ----------- | ---------------------------- |
+| `volume`             | Double        | ✅          | Doit être positif            |
+| `natureMarchandise`  | String        | ✅          | Non vide                     |
+| `dateDepart`         | LocalDateTime | ✅          | Doit être dans le futur      |
+| `adresseDepart`      | String        | ✅          | Non vide                     |
+| `adresseDestination` | String        | ✅          | Non vide                     |
+| `categorieId`        | String (UUID) | ❌          | ID d'une catégorie existante |
+
+### `CategorieRequestDTO` (création de catégorie)
+
+```json
+{
+  "nom": "Produits Alimentaires",
+  "description": "Produits alimentaires nécessitant une chaîne de froid",
+  "densiteMoyenne": 850.0,
+  "fragile": false,
+  "dangereux": false,
+  "temperatureRequise": "refrigere",
+  "restrictions": "Respecter la chaîne du froid"
+}
+```
+
+| Champ                | Type    | Obligatoire | Validation                                      |
+| -------------------- | ------- | ----------- | ----------------------------------------------- |
+| `nom`                | String  | ✅          | Non vide, unique                                |
+| `description`        | String  | ❌          | Max 500 caractères                              |
+| `densiteMoyenne`     | Double  | ❌          | Doit être positif ou nul (kg/m³)                |
+| `fragile`            | Boolean | ❌          | Par défaut: false                               |
+| `dangereux`          | Boolean | ❌          | Par défaut: false                               |
+| `temperatureRequise` | String  | ❌          | ambiante, refrigere, congele (défaut: ambiante) |
+| `restrictions`       | String  | ❌          | Max 500 caractères                              |
+
+### `CategorieResponseDTO` (réponse)
+
+```json
+{
+  "idCategorie": "550e8400-e29b-41d4-a716-446655440000",
+  "nom": "Produits Alimentaires",
+  "description": "Produits alimentaires nécessitant une chaîne de froid",
+  "densiteMoyenne": 850.0,
+  "fragile": false,
+  "dangereux": false,
+  "temperatureRequise": "refrigere",
+  "restrictions": "Respecter la chaîne du froid",
+  "dateCreation": "2025-11-26T10:30:00",
+  "dateModification": "2025-11-26T14:45:00"
+}
+```
 
 ### `DemandeResponseDTO` (réponse)
 
@@ -103,10 +168,31 @@ Importez `Service3_Demandes_Transport.postman_collection.json` dans Postman - le
   "devisEstime": 1500.0,
   "itineraireAssocieId": 42,
   "groupeId": null,
+  "categorie": {
+    "idCategorie": "cat-001-meubles",
+    "nom": "Meubles",
+    "fragile": true,
+    "temperatureRequise": "ambiante"
+  },
   "dateCreation": "2025-11-25T22:30:00",
   "dateModification": "2025-11-25T22:30:00"
 }
 ```
+
+### Catégories Prédéfinies
+
+Le système inclut les catégories suivantes par défaut :
+
+| ID                | Nom                       | Fragile | Dangereux | Température |
+| ----------------- | ------------------------- | ------- | --------- | ----------- |
+| `cat-001-meubles` | Meubles                   | ✅      | ❌        | ambiante    |
+| `cat-002-electro` | Électroménager            | ✅      | ❌        | ambiante    |
+| `cat-003-aliment` | Produits Alimentaires     | ❌      | ❌        | refrigere   |
+| `cat-004-surgele` | Produits Surgelés         | ❌      | ❌        | congele     |
+| `cat-005-constr`  | Matériaux de Construction | ❌      | ❌        | ambiante    |
+| `cat-006-chimiq`  | Produits Chimiques        | ❌      | ✅        | ambiante    |
+| `cat-007-pharma`  | Produits Pharmaceutiques  | ✅      | ❌        | refrigere   |
+| `cat-008-texti`   | Textiles                  | ❌      | ❌        | ambiante    |
 
 ### `PaiementStatusUpdateDTO` (webhook paiement)
 

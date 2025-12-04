@@ -97,6 +97,13 @@ public class Demande {
     private Long groupeId;
 
     /**
+     * Catégorie de la marchandise
+     */
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "categorie_id", referencedColumnName = "id_categorie")
+    private Categorie categorie;
+
+    /**
      * Devis estimé pour le transport
      */
     @Column(precision = 10, scale = 2)

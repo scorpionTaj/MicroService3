@@ -34,7 +34,10 @@ public record DemandeRequestDTO(
 
         @Schema(description = "Adresse complète de destination", example = "456 Avenue Hassan II, Rabat", requiredMode = Schema.RequiredMode.REQUIRED)
         @NotBlank(message = "L'adresse de destination est obligatoire")
-        String adresseDestination
+        String adresseDestination,
+
+        @Schema(description = "ID de la catégorie de marchandise (UUID)", example = "cat-001-meubles", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+        String categorieId
 ) {
 }
 
