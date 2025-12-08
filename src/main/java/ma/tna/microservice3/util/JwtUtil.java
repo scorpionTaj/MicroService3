@@ -60,7 +60,7 @@ public class JwtUtil {
 
     /**
      * Extrait le nom d'utilisateur (subject) du token
-     * Le Service Utilisateurs peut utiliser 'sub' ou 'username'
+     * Le Service Utilisateurs peut utiliser 'sub', 'username', ou 'email'
      */
     public String extractUsername(String token) {
         Claims claims = extractAllClaims(token);
@@ -70,6 +70,19 @@ public class JwtUtil {
             // Fallback sur le claim 'username' si présent
             username = (String) claims.get("username");
         }
+        if (username == null || username.isBlank()) {
+            // Fallback sur le claim 'email' (utilisé par Service Utilisateurs)
+            username = (String) claims.get("email");
+        }
+        if (username == null || username.isBlank()) {
+            // Fallback sur user_id comme string
+            Object userId = claims.get("user_id");
+            if (userId != null) {
+                username = userId.toString();
+            }
+        }
+        logger.debug("extractUsername - sub: {}, username: {}, email: {}, result: {}", 
+                claims.getSubject(), claims.get("username"), claims.get("email"), username);
         return username;
     }
 
