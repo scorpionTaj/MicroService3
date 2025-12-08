@@ -55,28 +55,40 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         final String jwt;
         final String username;
 
+        logger.debug("Processing request: " + request.getMethod() + " " + request.getRequestURI());
+        logger.debug("Authorization header present: " + (authHeader != null));
+
         // Vérifier si le header Authorization existe et commence par "Bearer "
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            if (authHeader != null) {
+                logger.warn("Authorization header does not start with 'Bearer ': " + authHeader.substring(0, Math.min(20, authHeader.length())));
+            } else {
+                logger.debug("No Authorization header found");
+            }
             filterChain.doFilter(request, response);
             return;
         }
 
         // Extraire le token JWT
         jwt = authHeader.substring(7);
+        logger.debug("JWT token extracted, length: " + jwt.length());
 
         try {
             // Extraire le nom d'utilisateur du token
             username = jwtUtil.extractUsername(jwt);
+            logger.debug("Extracted username from token: " + username);
 
             // Si l'utilisateur est valide et qu'il n'y a pas encore d'authentification
             if (username != null && SecurityContextHolder.getContext().getAuthentication() == null) {
 
                 // Valider le token
                 if (jwtUtil.validateToken(jwt)) {
+                    logger.debug("Token is valid");
 
                     // Extraire les informations du token
                     Long userId = jwtUtil.extractUserId(jwt);
                     String role = jwtUtil.extractRole(jwt);
+                    logger.info("JWT Authentication successful - userId: " + userId + ", role: " + role);
 
                     // Créer l'authentification
                     // Ajouter le préfixe ROLE_ si absent

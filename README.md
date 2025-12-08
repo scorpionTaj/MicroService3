@@ -373,7 +373,7 @@ GET /actuator/health/readiness  → Application prête ?
 ### Variables d'environnement
 
 | Variable                     | Description                 | Valeur par défaut                              |
-| ---------------------------- | --------------------------- | ---------------------------------------------- |
+| ---------------------------- | --------------------------- | ---------------------------------------------- | 
 | `SERVER_PORT`                | Port de l'application       | `8083`                                         |
 | `SPRING_DATASOURCE_URL`      | URL de connexion PostgreSQL | `jdbc:postgresql://localhost:5433/demandes_db` |
 | `SPRING_DATASOURCE_USERNAME` | Utilisateur PostgreSQL      | `demandes_user`                                |
