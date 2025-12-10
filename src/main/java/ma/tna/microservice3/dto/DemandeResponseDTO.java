@@ -19,19 +19,22 @@ public record DemandeResponseDTO(
         @Schema(description = "Volume de la marchandise en m³", example = "25.5")
         Double volume,
 
+        @Schema(description = "Poids de la marchandise en kg", example = "500.0", nullable = true)
+        Double poids,
+
         @Schema(description = "Nature de la marchandise", example = "Matériaux de construction")
         String natureMarchandise,
 
         @Schema(description = "Date et heure de départ", example = "2025-12-15T08:00:00")
         LocalDateTime dateDepart,
 
-        @Schema(description = "Adresse de départ", example = "123 Rue Mohammed V, Casablanca")
-        String adresseDepart,
+        @Schema(description = "Ville de départ", example = "Casablanca")
+        String villeDepart,
 
-        @Schema(description = "Adresse de destination", example = "456 Avenue Hassan II, Rabat")
-        String adresseDestination,
+        @Schema(description = "Ville de destination", example = "Rabat")
+        String villeDestination,
 
-        @Schema(description = "Statut de validation", example = "EN_ATTENTE", allowableValues = {"EN_ATTENTE", "VALIDEE", "REFUSEE"})
+        @Schema(description = "Statut de validation", example = "EN_ATTENTE_CLIENT", allowableValues = {"EN_ATTENTE_CLIENT", "VALIDEE", "REFUSEE", "EN_COURS", "TERMINEE"})
         String statutValidation,
 
         @Schema(description = "Devis estimé en MAD", example = "1500.00")
@@ -46,8 +49,8 @@ public record DemandeResponseDTO(
         @Schema(description = "Durée estimée en minutes", example = "102", nullable = true)
         Integer dureeEstimeeMin,
 
-        @Schema(description = "ID du groupe de transport", example = "3", nullable = true)
-        Long groupeId,
+        @Schema(description = "ID de la mission associée", example = "3", nullable = true)
+        Long missionId,
 
         @Schema(description = "Informations sur la catégorie de marchandise", nullable = true)
         CategorieResponseDTO categorie,

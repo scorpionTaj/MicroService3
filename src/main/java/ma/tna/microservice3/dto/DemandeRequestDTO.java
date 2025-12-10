@@ -19,6 +19,10 @@ public record DemandeRequestDTO(
         @Positive(message = "Le volume doit être positif")
         Double volume,
 
+        @Schema(description = "Poids de la marchandise en kg", example = "500.0", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
+        @Positive(message = "Le poids doit être positif")
+        Double poids,
+
         @Schema(description = "Nature de la marchandise à transporter", example = "Matériaux de construction", requiredMode = Schema.RequiredMode.REQUIRED)
         @NotBlank(message = "La nature de la marchandise est obligatoire")
         String natureMarchandise,
@@ -28,13 +32,13 @@ public record DemandeRequestDTO(
         @Future(message = "La date de départ doit être dans le futur")
         LocalDateTime dateDepart,
 
-        @Schema(description = "Adresse complète de départ", example = "123 Rue Mohammed V, Casablanca", requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotBlank(message = "L'adresse de départ est obligatoire")
-        String adresseDepart,
+        @Schema(description = "Ville de départ", example = "Casablanca", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank(message = "La ville de départ est obligatoire")
+        String villeDepart,
 
-        @Schema(description = "Adresse complète de destination", example = "456 Avenue Hassan II, Rabat", requiredMode = Schema.RequiredMode.REQUIRED)
-        @NotBlank(message = "L'adresse de destination est obligatoire")
-        String adresseDestination,
+        @Schema(description = "Ville de destination", example = "Rabat", requiredMode = Schema.RequiredMode.REQUIRED)
+        @NotBlank(message = "La ville de destination est obligatoire")
+        String villeDestination,
 
         @Schema(description = "ID de la catégorie de marchandise (UUID)", example = "cat-001-meubles", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
         String categorieId

@@ -54,12 +54,15 @@ Importez `Service3_Demandes_Transport.postman_collection.json` dans Postman - le
 
 ### Demandes de Transport
 
-| Méthode | Endpoint                           | Description                             | Authentification |
-| ------- | ---------------------------------- | --------------------------------------- | ---------------- |
-| POST    | `/api/v1/demandes`                 | Créer une nouvelle demande de transport | JWT requis       |
-| GET     | `/api/v1/demandes`                 | Lister toutes mes demandes              | JWT requis       |
-| GET     | `/api/v1/demandes/{id}`            | Récupérer une demande par ID            | JWT requis       |
-| PUT     | `/api/v1/demandes/{id}/validation` | Valider une demande (accepter le devis) | JWT requis       |
+| Méthode | Endpoint                              | Description                                      | Authentification |
+| ------- | ------------------------------------- | ------------------------------------------------ | ---------------- |
+| POST    | `/api/v1/demandes`                    | Créer une nouvelle demande de transport          | JWT requis       |
+| GET     | `/api/v1/demandes`                    | Lister toutes mes demandes                       | JWT requis       |
+| GET     | `/api/v1/demandes/{id}`               | Récupérer une demande par ID                     | JWT requis       |
+| PUT     | `/api/v1/demandes/{id}/validation`    | Valider une demande (accepter le devis)          | JWT requis       |
+| PUT     | `/api/v1/demandes/{id}/association`   | Associer une mission et itinéraire à la demande  | JWT requis       |
+
+> **Note pour les autres microservices:** L'endpoint `PUT /api/v1/demandes/{id}/association` est destiné à être appelé par d'autres microservices (ex: Service Missions) pour associer une mission et un itinéraire à une demande existante.
 
 ### Catégories de Marchandise
 
@@ -93,22 +96,24 @@ Importez `Service3_Demandes_Transport.postman_collection.json` dans Postman - le
 ```json
 {
   "volume": 15.5,
+  "poids": 250.0,
   "natureMarchandise": "Meubles de salon",
   "dateDepart": "2025-12-15T10:00:00",
-  "adresseDepart": "123 Rue Mohammed V, Casablanca",
-  "adresseDestination": "456 Avenue Hassan II, Rabat",
+  "villeDepart": "Casablanca",
+  "villeDestination": "Rabat",
   "categorieId": "cat-001-meubles"
 }
 ```
 
-| Champ                | Type          | Obligatoire | Validation                   |
-| -------------------- | ------------- | ----------- | ---------------------------- |
-| `volume`             | Double        | ✅          | Doit être positif            |
-| `natureMarchandise`  | String        | ✅          | Non vide                     |
-| `dateDepart`         | LocalDateTime | ✅          | Doit être dans le futur      |
-| `adresseDepart`      | String        | ✅          | Non vide                     |
-| `adresseDestination` | String        | ✅          | Non vide                     |
-| `categorieId`        | String (UUID) | ❌          | ID d'une catégorie existante |
+| Champ              | Type          | Obligatoire | Validation                   |
+| ------------------ | ------------- | ----------- | ---------------------------- |
+| `volume`           | Double        | ✅          | Doit être positif            |
+| `poids`            | Double        | ❌          | Poids en kg (optionnel)      |
+| `natureMarchandise`| String        | ✅          | Non vide                     |
+| `dateDepart`       | LocalDateTime | ✅          | Doit être dans le futur      |
+| `villeDepart`      | String        | ✅          | Ville de départ              |
+| `villeDestination` | String        | ✅          | Ville de destination         |
+| `categorieId`      | String (UUID) | ❌          | ID d'une catégorie existante |
 
 ### `CategorieRequestDTO` (création de catégorie)
 
@@ -158,14 +163,17 @@ Importez `Service3_Demandes_Transport.postman_collection.json` dans Postman - le
   "id": 1,
   "clientId": 1,
   "volume": 15.5,
+  "poids": 250.0,
   "natureMarchandise": "Meubles de salon",
   "dateDepart": "2025-12-15T10:00:00",
-  "adresseDepart": "123 Rue Mohammed V, Casablanca",
-  "adresseDestination": "456 Avenue Hassan II, Rabat",
+  "villeDepart": "Casablanca",
+  "villeDestination": "Rabat",
   "statutValidation": "EN_ATTENTE_CLIENT",
   "devisEstime": 1500.0,
-  "itineraireAssocieId": 42,
-  "groupeId": null,
+  "itineraireAssocieId": "550e8400-e29b-41d4-a716-446655440000",
+  "distanceKm": 90.5,
+  "dureeEstimeeMin": 75,
+  "missionId": null,
   "categorie": {
     "idCategorie": "cat-001-meubles",
     "nom": "Meubles",
@@ -175,6 +183,25 @@ Importez `Service3_Demandes_Transport.postman_collection.json` dans Postman - le
   "dateCreation": "2025-11-25T22:30:00",
   "dateModification": "2025-11-25T22:30:00"
 }
+```
+
+### `DemandeAssociationDTO` (association mission/itinéraire - pour autres microservices)
+
+```json
+{
+  "missionId": 5,
+  "itineraireId": "550e8400-e29b-41d4-a716-446655440000",
+  "distanceKm": 133.7,
+  "dureeEstimeeMin": 102
+}
+```
+
+| Champ            | Type    | Obligatoire | Description                      |
+| ---------------- | ------- | ----------- | -------------------------------- |
+| `missionId`      | Long    | ✅          | ID de la mission à associer     |
+| `itineraireId`   | String  | ❌          | ID de l'itinéraire (UUID)       |
+| `distanceKm`     | Double  | ❌          | Distance en km                  |
+| `dureeEstimeeMin`| Integer | ❌          | Durée estimée en minutes        |
 ```
 
 ### Catégories Prédéfinies
@@ -217,10 +244,11 @@ Content-Type: application/json
 
 {
   "volume": 15.5,
+  "poids": 250.0,
   "natureMarchandise": "Meubles de salon",
   "dateDepart": "2025-12-15T10:00:00",
-  "adresseDepart": "123 Rue Mohammed V, Casablanca",
-  "adresseDestination": "456 Avenue Hassan II, Rabat"
+  "villeDepart": "Casablanca",
+  "villeDestination": "Rabat"
 }
 ```
 
@@ -231,7 +259,10 @@ Content-Type: application/json
   "id": 1,
   "clientId": 1,
   "volume": 15.5,
+  "poids": 250.0,
   "natureMarchandise": "Meubles de salon",
+  "villeDepart": "Casablanca",
+  "villeDestination": "Rabat",
   "statutValidation": "EN_ATTENTE_CLIENT",
   "devisEstime": 1500.00,
   ...
@@ -268,6 +299,36 @@ Authorization: Bearer <jwt_token>
   ...
 }
 ```
+
+### 5. Associer une mission et un itinéraire (pour autres microservices)
+
+```http
+PUT /api/v1/demandes/1/association
+Authorization: Bearer <jwt_token>
+Content-Type: application/json
+
+{
+  "missionId": 5,
+  "itineraireId": "550e8400-e29b-41d4-a716-446655440000",
+  "distanceKm": 90.5,
+  "dureeEstimeeMin": 75
+}
+```
+
+**Réponse (200 OK):**
+
+```json
+{
+  "id": 1,
+  "missionId": 5,
+  "itineraireAssocieId": "550e8400-e29b-41d4-a716-446655440000",
+  "distanceKm": 90.5,
+  "dureeEstimeeMin": 75,
+  ...
+}
+```
+
+> **Note:** Cet endpoint est destiné à être appelé par d'autres microservices (ex: Service Missions) pour associer une mission et un itinéraire à une demande existante.
 
 ---
 

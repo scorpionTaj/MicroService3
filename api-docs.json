@@ -47,16 +47,17 @@
       "authentication": "Bearer JWT Token",
       "requestBody": {
         "volume": 25.5,
+        "poids": 500.0,
         "natureMarchandise": "Matériaux de construction",
         "dateDepart": "2025-12-15T08:00:00",
-        "adresseDepart": "123 Rue Mohammed V, Casablanca, Maroc",
-        "adresseDestination": "456 Avenue Hassan II, Rabat, Maroc",
+        "villeDepart": "Casablanca",
+        "villeDestination": "Rabat",
         "categorieId": "cat-005-constr"
       },
       "testExamples": {
-        "powershell": "$headers = @{'Content-Type'='application/json'; 'Authorization'='Bearer YOUR_JWT_TOKEN'}; $body = '{\"volume\":25.5,\"natureMarchandise\":\"Matériaux de construction\",\"dateDepart\":\"2025-12-15T08:00:00\",\"adresseDepart\":\"123 Rue Mohammed V, Casablanca\",\"adresseDestination\":\"456 Avenue Hassan II, Rabat\",\"categorieId\":\"cat-005-constr\"}'; Invoke-RestMethod -Uri 'http://localhost:8083/api/v1/demandes' -Method POST -Headers $headers -Body $body",
-        "curl": "curl -X POST 'http://localhost:8083/api/v1/demandes' -H 'Content-Type: application/json' -H 'Authorization: Bearer YOUR_JWT_TOKEN' -d '{\"volume\":25.5,\"natureMarchandise\":\"Matériaux de construction\",\"dateDepart\":\"2025-12-15T08:00:00\",\"adresseDepart\":\"123 Rue Mohammed V, Casablanca\",\"adresseDestination\":\"456 Avenue Hassan II, Rabat\",\"categorieId\":\"cat-005-constr\"}'",
-        "fetch": "fetch('http://localhost:8083/api/v1/demandes', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer YOUR_JWT_TOKEN'}, body:JSON.stringify({volume:25.5,natureMarchandise:'Matériaux de construction',dateDepart:'2025-12-15T08:00:00',adresseDepart:'123 Rue Mohammed V, Casablanca',adresseDestination:'456 Avenue Hassan II, Rabat',categorieId:'cat-005-constr'})}).then(r=>r.json()).then(console.log)"
+        "powershell": "$headers = @{'Content-Type'='application/json'; 'Authorization'='Bearer YOUR_JWT_TOKEN'}; $body = '{\"volume\":25.5,\"poids\":500.0,\"natureMarchandise\":\"Matériaux de construction\",\"dateDepart\":\"2025-12-15T08:00:00\",\"villeDepart\":\"Casablanca\",\"villeDestination\":\"Rabat\",\"categorieId\":\"cat-005-constr\"}'; Invoke-RestMethod -Uri 'http://localhost:8083/api/v1/demandes' -Method POST -Headers $headers -Body $body",
+        "curl": "curl -X POST 'http://localhost:8083/api/v1/demandes' -H 'Content-Type: application/json' -H 'Authorization: Bearer YOUR_JWT_TOKEN' -d '{\"volume\":25.5,\"poids\":500.0,\"natureMarchandise\":\"Matériaux de construction\",\"dateDepart\":\"2025-12-15T08:00:00\",\"villeDepart\":\"Casablanca\",\"villeDestination\":\"Rabat\",\"categorieId\":\"cat-005-constr\"}'",
+        "fetch": "fetch('http://localhost:8083/api/v1/demandes', {method:'POST', headers:{'Content-Type':'application/json','Authorization':'Bearer YOUR_JWT_TOKEN'}, body:JSON.stringify({volume:25.5,poids:500.0,natureMarchandise:'Matériaux de construction',dateDepart:'2025-12-15T08:00:00',villeDepart:'Casablanca',villeDestination:'Rabat',categorieId:'cat-005-constr'})}).then(r=>r.json()).then(console.log)"
       }
     },
     {
@@ -109,6 +110,32 @@
         "powershell": "Invoke-RestMethod -Uri 'http://localhost:8083/api/v1/demandes/1/validation' -Method PUT -Headers @{'Authorization'='Bearer YOUR_JWT_TOKEN'}",
         "curl": "curl -X PUT 'http://localhost:8083/api/v1/demandes/1/validation' -H 'Authorization: Bearer YOUR_JWT_TOKEN'",
         "fetch": "fetch('http://localhost:8083/api/v1/demandes/1/validation', {method:'PUT', headers:{'Authorization':'Bearer YOUR_JWT_TOKEN'}}).then(r=>r.json()).then(console.log)"
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/demandes/{id}/association",
+      "summary": "Associer une mission et un itinéraire à une demande",
+      "description": "Met à jour une demande avec l'ID de mission et l'ID d'itinéraire associés. Cet endpoint est destiné à être appelé par d'autres microservices (ex: Service Missions).",
+      "authentication": "Bearer JWT Token",
+      "parameters": [
+        {
+          "name": "id",
+          "type": "integer",
+          "required": true,
+          "description": "ID de la demande à associer"
+        }
+      ],
+      "requestBody": {
+        "missionId": 5,
+        "itineraireId": "550e8400-e29b-41d4-a716-446655440000",
+        "distanceKm": 133.7,
+        "dureeEstimeeMin": 102
+      },
+      "testExamples": {
+        "powershell": "$headers = @{'Content-Type'='application/json'; 'Authorization'='Bearer YOUR_JWT_TOKEN'}; $body = '{\"missionId\":5,\"itineraireId\":\"550e8400-e29b-41d4-a716-446655440000\",\"distanceKm\":133.7,\"dureeEstimeeMin\":102}'; Invoke-RestMethod -Uri 'http://localhost:8083/api/v1/demandes/1/association' -Method PUT -Headers $headers -Body $body",
+        "curl": "curl -X PUT 'http://localhost:8083/api/v1/demandes/1/association' -H 'Content-Type: application/json' -H 'Authorization: Bearer YOUR_JWT_TOKEN' -d '{\"missionId\":5,\"itineraireId\":\"550e8400-e29b-41d4-a716-446655440000\",\"distanceKm\":133.7,\"dureeEstimeeMin\":102}'",
+        "fetch": "fetch('http://localhost:8083/api/v1/demandes/1/association', {method:'PUT', headers:{'Content-Type':'application/json','Authorization':'Bearer YOUR_JWT_TOKEN'}, body:JSON.stringify({missionId:5,itineraireId:'550e8400-e29b-41d4-a716-446655440000',distanceKm:133.7,dureeEstimeeMin:102})}).then(r=>r.json()).then(console.log)"
       }
     },
     {
@@ -314,11 +341,12 @@
     "DemandeRequest": {
       "type": "object",
       "properties": {
-        "volume": "number - Volume de la marchandise (doit être positif)",
+        "volume": "number - Volume de la marchandise en m³ (doit être positif)",
+        "poids": "number - Poids de la marchandise en kg (optionnel)",
         "natureMarchandise": "string - Nature de la marchandise à transporter",
         "dateDepart": "datetime - Date et heure de départ (doit être dans le futur)",
-        "adresseDepart": "string - Adresse de départ",
-        "adresseDestination": "string - Adresse de destination",
+        "villeDepart": "string - Ville de départ (ex: Casablanca, Rabat)",
+        "villeDestination": "string - Ville de destination",
         "categorieId": "string (UUID) - ID de la catégorie de marchandise (optionnel)"
       }
     },
@@ -327,18 +355,31 @@
       "properties": {
         "id": "integer - Identifiant unique de la demande",
         "clientId": "integer - ID du client",
-        "volume": "number - Volume de la marchandise",
+        "volume": "number - Volume de la marchandise en m³",
+        "poids": "number - Poids de la marchandise en kg",
         "natureMarchandise": "string - Nature de la marchandise",
         "dateDepart": "datetime - Date et heure de départ",
-        "adresseDepart": "string - Adresse de départ",
-        "adresseDestination": "string - Adresse de destination",
-        "statutValidation": "string - Statut de validation (EN_ATTENTE, VALIDEE, REFUSEE)",
+        "villeDepart": "string - Ville de départ",
+        "villeDestination": "string - Ville de destination",
+        "statutValidation": "string - Statut de validation (EN_ATTENTE_CLIENT, VALIDEE_CLIENT, etc.)",
         "devisEstime": "decimal - Devis estimé en MAD",
-        "itineraireAssocieId": "integer - ID de l'itinéraire associé",
-        "groupeId": "integer - ID du groupe de transport",
+        "itineraireAssocieId": "string - ID de l'itinéraire associé (UUID)",
+        "distanceKm": "number - Distance en kilomètres",
+        "dureeEstimeeMin": "integer - Durée estimée en minutes",
+        "missionId": "integer - ID de la mission associée",
         "categorie": "object - Informations sur la catégorie de marchandise",
         "dateCreation": "datetime - Date de création de la demande",
         "dateModification": "datetime - Date de dernière modification"
+      }
+    },
+    "DemandeAssociation": {
+      "type": "object",
+      "description": "DTO pour associer une mission et un itinéraire à une demande (appelé par autres microservices)",
+      "properties": {
+        "missionId": "integer - ID de la mission à associer (obligatoire)",
+        "itineraireId": "string (UUID) - ID de l'itinéraire à associer (optionnel)",
+        "distanceKm": "number - Distance en km (optionnel)",
+        "dureeEstimeeMin": "integer - Durée estimée en minutes (optionnel)"
       }
     },
     "CategorieRequest": {

@@ -35,15 +35,16 @@ CREATE TABLE IF NOT EXISTS demandes (
     id BIGSERIAL PRIMARY KEY,
     client_id BIGINT NOT NULL,
     volume DOUBLE PRECISION NOT NULL,
+    poids DOUBLE PRECISION,
     nature_marchandise VARCHAR(255) NOT NULL,
     date_depart TIMESTAMP NOT NULL,
-    adresse_depart VARCHAR(500) NOT NULL,
-    adresse_destination VARCHAR(500) NOT NULL,
+    ville_depart VARCHAR(255) NOT NULL,
+    ville_destination VARCHAR(255) NOT NULL,
     statut_validation VARCHAR(50) NOT NULL DEFAULT 'EN_ATTENTE_CLIENT',
     itineraire_associe_id VARCHAR(100),
     distance_km DOUBLE PRECISION,
     duree_estimee_min INTEGER,
-    groupe_id BIGINT,
+    mission_id BIGINT,
     categorie_id VARCHAR(36) REFERENCES categories(id_categorie),
     devis_estime DECIMAL(10, 2),
     date_creation TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -76,11 +77,11 @@ VALUES
 ON CONFLICT (id_categorie) DO NOTHING;
 
 -- Données de test (optionnel)
-INSERT INTO demandes (client_id, volume, nature_marchandise, date_depart, adresse_depart, adresse_destination, statut_validation, categorie_id, devis_estime)
+INSERT INTO demandes (client_id, volume, poids, nature_marchandise, date_depart, ville_depart, ville_destination, statut_validation, categorie_id, devis_estime)
 VALUES
-    (1, 15.5, 'Meubles', '2024-12-15 10:00:00', '123 Rue Example, Paris', '456 Avenue Test, Lyon', 'EN_ATTENTE_CLIENT', 'cat-001-meubles', 250.00),
-    (1, 8.0, 'Électroménager', '2024-12-20 14:00:00', '789 Boulevard Demo, Marseille', '321 Rue Sample, Nice', 'VALIDEE_CLIENT', 'cat-002-electro', 180.00),
-    (2, 25.0, 'Matériaux de construction', '2024-12-18 08:00:00', '555 Avenue Construction, Toulouse', '666 Rue Bâtiment, Bordeaux', 'EN_ATTENTE_CLIENT', 'cat-005-constr', 450.00)
+    (1, 15.5, 250.0, 'Meubles', '2024-12-15 10:00:00', 'Paris', 'Lyon', 'EN_ATTENTE_CLIENT', 'cat-001-meubles', 250.00),
+    (1, 8.0, 120.0, 'Électroménager', '2024-12-20 14:00:00', 'Marseille', 'Nice', 'VALIDEE_CLIENT', 'cat-002-electro', 180.00),
+    (2, 25.0, 500.0, 'Matériaux de construction', '2024-12-18 08:00:00', 'Toulouse', 'Bordeaux', 'EN_ATTENTE_CLIENT', 'cat-005-constr', 450.00)
 ON CONFLICT (id) DO NOTHING;
 
 -- Fin du script

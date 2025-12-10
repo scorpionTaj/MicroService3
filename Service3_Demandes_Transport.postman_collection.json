@@ -2,7 +2,7 @@
   "info": {
     "name": "Service 3 - Demandes de Transport (Complete)",
     "_postman_id": "service3-demandes-transport-complete",
-    "description": "Collection Postman complète pour tester le Service 3 : Demandes de Transport et Catégories de Marchandises\n\n## 🔐 Authentification JWT\nCe service utilise le même système JWT que le Service Utilisateurs (Microservice 1).\n- **Secret partagé**: transport_marchandises_api2025vs2026\n- **Algorithme**: HS256\n- **Obtenir un token**: POST http://172.30.80.11:31019/account/login/\n\n## 📚 Documentation API\nCe service dispose de plusieurs façons d'accéder à la documentation :\n- **/** - Documentation JSON personnalisée avec exemples de test\n- **/swagger-ui.html** - Interface Swagger UI interactive (ouvrir dans navigateur)\n- **/v3/api-docs** - Spécification OpenAPI 3.0 standard\n\n## Instructions\n1. Utilisez '🔐 Login (Service Utilisateurs)' pour obtenir un token JWT\n2. Ou utilisez le token de test déjà configuré\n3. Lancez 'Health Check' pour vérifier que le service fonctionne\n4. Testez les catégories (lecture publique, écriture avec JWT)\n5. Créez une demande avec 'Créer une Demande'\n\n## Endpoints Principaux - Demandes\n- POST /api/v1/demandes - Créer une demande\n- GET /api/v1/demandes - Lister mes demandes\n- GET /api/v1/demandes/{id} - Voir une demande\n- PUT /api/v1/demandes/{id}/validation - Valider une demande\n\n## Endpoints Principaux - Catégories\n- GET /api/v1/categories - Lister les catégories (public)\n- POST /api/v1/categories - Créer une catégorie (JWT)\n- PUT /api/v1/categories/{id} - Modifier (JWT)\n- DELETE /api/v1/categories/{id} - Supprimer (JWT)",
+    "description": "Collection Postman complète pour tester le Service 3 : Demandes de Transport et Catégories de Marchandises\n\n## 🔐 Authentification JWT\nCe service utilise le même système JWT que le Service Utilisateurs (Microservice 1).\n- **Secret partagé**: transport_marchandises_api2025vs2026\n- **Algorithme**: HS256\n- **Obtenir un token**: POST http://172.30.80.11:31019/account/login/\n\n## 📚 Documentation API\nCe service dispose de plusieurs façons d'accéder à la documentation :\n- **/** - Documentation JSON personnalisée avec exemples de test\n- **/swagger-ui.html** - Interface Swagger UI interactive (ouvrir dans navigateur)\n- **/v3/api-docs** - Spécification OpenAPI 3.0 standard\n\n## Instructions\n1. Utilisez '🔐 Login (Service Utilisateurs)' pour obtenir un token JWT\n2. Ou utilisez le token de test déjà configuré\n3. Lancez 'Health Check' pour vérifier que le service fonctionne\n4. Testez les catégories (lecture publique, écriture avec JWT)\n5. Créez une demande avec 'Créer une Demande'\n\n## Endpoints Principaux - Demandes\n- POST /api/v1/demandes - Créer une demande\n- GET /api/v1/demandes - Lister mes demandes\n- GET /api/v1/demandes/{id} - Voir une demande\n- PUT /api/v1/demandes/{id}/validation - Valider une demande\n- PUT /api/v1/demandes/{id}/association - Associer mission/itinéraire (pour autres microservices)\n\n## Endpoints Principaux - Catégories\n- GET /api/v1/categories - Lister les catégories (public)\n- POST /api/v1/categories - Créer une catégorie (JWT)\n- PUT /api/v1/categories/{id} - Modifier (JWT)\n- DELETE /api/v1/categories/{id} - Supprimer (JWT)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -274,7 +274,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"volume\": 15.5,\n  \"natureMarchandise\": \"Meubles de salon\",\n  \"dateDepart\": \"2025-12-15T10:00:00\",\n  \"adresseDepart\": \"123 Rue Mohammed V, Casablanca\",\n  \"adresseDestination\": \"456 Avenue Hassan II, Rabat\",\n  \"categorieId\": \"cat-001-meubles\"\n}"
+              "raw": "{\n  \"volume\": 15.5,\n  \"poids\": 250.0,\n  \"natureMarchandise\": \"Meubles de salon\",\n  \"dateDepart\": \"2025-12-15T10:00:00\",\n  \"villeDepart\": \"Casablanca\",\n  \"villeDestination\": \"Rabat\",\n  \"categorieId\": \"cat-001-meubles\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/demandes",
@@ -344,6 +344,35 @@
             "description": "Le client valide sa demande et accepte le devis proposé"
           },
           "response": []
+        },
+        {
+          "name": "5. Associer Mission/Itinéraire (pour autres MS)",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"missionId\": 5,\n  \"itineraireId\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"distanceKm\": 90.5,\n  \"dureeEstimeeMin\": 75\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes/{{demande_id}}/association",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes", "{{demande_id}}", "association"]
+            },
+            "description": "Associe une mission et un itinéraire à une demande existante. Cet endpoint est destiné à être appelé par d'autres microservices (ex: Service Missions).\n\n**Champs:**\n- missionId (obligatoire): ID de la mission\n- itineraireId (optionnel): ID de l'itinéraire (UUID)\n- distanceKm (optionnel): Distance en km\n- dureeEstimeeMin (optionnel): Durée estimée en minutes"
+          },
+          "response": []
         }
       ],
       "description": "Opérations CRUD sur les demandes (nécessite JWT)"
@@ -383,7 +412,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"volume\": 20.0,\n  \"natureMarchandise\": \"Meubles - Canapé, table basse et armoire\",\n  \"dateDepart\": \"2025-12-20T09:00:00\",\n  \"adresseDepart\": \"45 Boulevard Mohammed V, Casablanca, 20000\",\n  \"adresseDestination\": \"12 Avenue Allal Ben Abdellah, Rabat, 10000\",\n  \"categorieId\": \"cat-001-meubles\"\n}"
+              "raw": "{\n  \"volume\": 20.0,\n  \"poids\": 350.0,\n  \"natureMarchandise\": \"Meubles - Canapé, table basse et armoire\",\n  \"dateDepart\": \"2025-12-20T09:00:00\",\n  \"villeDepart\": \"Casablanca\",\n  \"villeDestination\": \"Rabat\",\n  \"categorieId\": \"cat-001-meubles\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/demandes",
@@ -426,7 +455,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"volume\": 8.5,\n  \"natureMarchandise\": \"Électroménager - Réfrigérateur et machine à laver\",\n  \"dateDepart\": \"2025-12-18T14:00:00\",\n  \"adresseDepart\": \"30 Rue Ibn Batouta, Marrakech, 40000\",\n  \"adresseDestination\": \"5 Avenue Hassan II, Agadir, 80000\",\n  \"categorieId\": \"cat-002-electro\"\n}"
+              "raw": "{\n  \"volume\": 8.5,\n  \"poids\": 180.0,\n  \"natureMarchandise\": \"Électroménager - Réfrigérateur et machine à laver\",\n  \"dateDepart\": \"2025-12-18T14:00:00\",\n  \"villeDepart\": \"Marrakech\",\n  \"villeDestination\": \"Agadir\",\n  \"categorieId\": \"cat-002-electro\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/demandes",
@@ -469,7 +498,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"volume\": 35.0,\n  \"natureMarchandise\": \"Matériaux de construction - Briques, ciment et fer\",\n  \"dateDepart\": \"2025-12-22T08:00:00\",\n  \"adresseDepart\": \"Zone Industrielle Ain Sebaa, Casablanca, 20000\",\n  \"adresseDestination\": \"Chantier Hay Riad, Rabat, 10000\",\n  \"categorieId\": \"cat-004-materi\"\n}"
+              "raw": "{\n  \"volume\": 35.0,\n  \"poids\": 2500.0,\n  \"natureMarchandise\": \"Matériaux de construction - Briques, ciment et fer\",\n  \"dateDepart\": \"2025-12-22T08:00:00\",\n  \"villeDepart\": \"Casablanca\",\n  \"villeDestination\": \"Rabat\",\n  \"categorieId\": \"cat-004-materi\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/demandes",
@@ -512,7 +541,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"volume\": 12.0,\n  \"natureMarchandise\": \"Produits alimentaires - Fruits et légumes frais\",\n  \"dateDepart\": \"2025-12-16T06:00:00\",\n  \"adresseDepart\": \"Marché de Gros, Kenitra, 14000\",\n  \"adresseDestination\": \"Supermarché Central, Tanger, 90000\",\n  \"categorieId\": \"cat-005-alimen\"\n}"
+              "raw": "{\n  \"volume\": 12.0,\n  \"poids\": 800.0,\n  \"natureMarchandise\": \"Produits alimentaires - Fruits et légumes frais\",\n  \"dateDepart\": \"2025-12-16T06:00:00\",\n  \"villeDepart\": \"Kenitra\",\n  \"villeDestination\": \"Tanger\",\n  \"categorieId\": \"cat-005-alimen\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/demandes",
@@ -555,7 +584,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"volume\": 5.0,\n  \"natureMarchandise\": \"Équipements informatiques - Serveurs et ordinateurs\",\n  \"dateDepart\": \"2025-12-17T11:00:00\",\n  \"adresseDepart\": \"Technopark, Casablanca, 20000\",\n  \"adresseDestination\": \"Université Al Akhawayn, Ifrane, 53000\",\n  \"categorieId\": \"cat-003-electr\"\n}"
+              "raw": "{\n  \"volume\": 5.0,\n  \"poids\": 120.0,\n  \"natureMarchandise\": \"Équipements informatiques - Serveurs et ordinateurs\",\n  \"dateDepart\": \"2025-12-17T11:00:00\",\n  \"villeDepart\": \"Casablanca\",\n  \"villeDestination\": \"Ifrane\",\n  \"categorieId\": \"cat-003-electr\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/demandes",
@@ -1041,7 +1070,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"volume\": 18.0,\n  \"natureMarchandise\": \"Salon complet - Canapé 3 places + fauteuils\",\n  \"dateDepart\": \"2025-12-20T09:00:00\",\n  \"adresseDepart\": \"123 Rue Mohammed V, Casablanca\",\n  \"adresseDestination\": \"456 Avenue Hassan II, Rabat\",\n  \"categorieId\": \"cat-001-meubles\"\n}"
+              "raw": "{\n  \"volume\": 18.0,\n  \"poids\": 300.0,\n  \"natureMarchandise\": \"Salon complet - Canapé 3 places + fauteuils\",\n  \"dateDepart\": \"2025-12-20T09:00:00\",\n  \"villeDepart\": \"Casablanca\",\n  \"villeDestination\": \"Rabat\",\n  \"categorieId\": \"cat-001-meubles\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/demandes",
@@ -1085,7 +1114,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"volume\": 8.0,\n  \"natureMarchandise\": \"Fruits et légumes frais pour restaurant\",\n  \"dateDepart\": \"2025-12-16T05:00:00\",\n  \"adresseDepart\": \"Marché de Gros, Agadir\",\n  \"adresseDestination\": \"Restaurant Le Jardin, Marrakech\",\n  \"categorieId\": \"cat-005-alimen\"\n}"
+              "raw": "{\n  \"volume\": 8.0,\n  \"poids\": 600.0,\n  \"natureMarchandise\": \"Fruits et légumes frais pour restaurant\",\n  \"dateDepart\": \"2025-12-16T05:00:00\",\n  \"villeDepart\": \"Agadir\",\n  \"villeDestination\": \"Marrakech\",\n  \"categorieId\": \"cat-005-alimen\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/demandes",
@@ -1129,7 +1158,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"volume\": 5.0,\n  \"natureMarchandise\": \"Solvants industriels pour usine\",\n  \"dateDepart\": \"2025-12-25T08:00:00\",\n  \"adresseDepart\": \"Zone Industrielle Sidi Bernoussi, Casablanca\",\n  \"adresseDestination\": \"Usine TechChem, Tanger\",\n  \"categorieId\": \"cat-006-chimiq\"\n}"
+              "raw": "{\n  \"volume\": 5.0,\n  \"poids\": 400.0,\n  \"natureMarchandise\": \"Solvants industriels pour usine\",\n  \"dateDepart\": \"2025-12-25T08:00:00\",\n  \"villeDepart\": \"Casablanca\",\n  \"villeDestination\": \"Tanger\",\n  \"categorieId\": \"cat-006-chimiq\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/demandes",
@@ -1173,7 +1202,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"volume\": 10.0,\n  \"natureMarchandise\": \"Cartons divers non classifiés\",\n  \"dateDepart\": \"2025-12-18T14:00:00\",\n  \"adresseDepart\": \"Entrepôt Central, Fès\",\n  \"adresseDestination\": \"Magasin, Meknès\"\n}"
+              "raw": "{\n  \"volume\": 10.0,\n  \"poids\": 200.0,\n  \"natureMarchandise\": \"Cartons divers non classifiés\",\n  \"dateDepart\": \"2025-12-18T14:00:00\",\n  \"villeDepart\": \"Fès\",\n  \"villeDestination\": \"Meknès\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/demandes",

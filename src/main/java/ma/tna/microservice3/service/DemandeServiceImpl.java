@@ -1,6 +1,11 @@
 package ma.tna.microservice3.service;
 
-import ma.tna.microservice3.dto.*;
+import ma.tna.microservice3.dto.CategorieResponseDTO;
+import ma.tna.microservice3.dto.DemandeAssociationDTO;
+import ma.tna.microservice3.dto.DemandeRequestDTO;
+import ma.tna.microservice3.dto.DemandeResponseDTO;
+import ma.tna.microservice3.dto.ItineraireResponseDTO;
+import ma.tna.microservice3.dto.TarifResponseDTO;
 import ma.tna.microservice3.exception.ResourceNotFoundException;
 import ma.tna.microservice3.exception.UnauthorizedException;
 import ma.tna.microservice3.mapper.DemandeMapper;
@@ -80,8 +85,8 @@ public class DemandeServiceImpl implements DemandeService {
         try {
             // 2. Appel au Service Itinéraires (MS4) pour calculer l'itinéraire
             ItineraireResponseDTO itineraire = appelServiceItineraires(
-                    demande.getAdresseDepart(),
-                    demande.getAdresseDestination(),
+                    demande.getVilleDepart(),
+                    demande.getVilleDestination(),
                     userId,
                     demande.getVolume(),
                     demande.getNatureMarchandise(),
@@ -181,14 +186,14 @@ public class DemandeServiceImpl implements DemandeService {
      * Utilise l'endpoint /routes/address du service Itinéraires
      * Endpoint: POST /api/routes/address
      */
-    private ItineraireResponseDTO appelServiceItineraires(String adresseDepart, String adresseDestination, Long userId, Double volume, String natureMarchandise, java.time.LocalDateTime dateDepart) {
+    private ItineraireResponseDTO appelServiceItineraires(String villeDepart, String villeDestination, Long userId, Double volume, String natureMarchandise, java.time.LocalDateTime dateDepart) {
         try {
-            logger.info("Appel au service Itinéraires: {} -> {}", adresseDepart, adresseDestination);
+            logger.info("Appel au service Itinéraires: {} -> {}", villeDepart, villeDestination);
 
             // Construire le body selon l'API MS4 /routes/address
             Map<String, Object> requestBody = new HashMap<>();
-            requestBody.put("originAddress", adresseDepart);
-            requestBody.put("destinationAddress", adresseDestination);
+            requestBody.put("originAddress", villeDepart);
+            requestBody.put("destinationAddress", villeDestination);
             requestBody.put("userId", userId != null ? userId.toString() : "anonymous");
             requestBody.put("includeReturn", false);
 
@@ -216,8 +221,40 @@ public class DemandeServiceImpl implements DemandeService {
     /**
      * Surcharge pour compatibilité - appel simplifié
      */
-    private ItineraireResponseDTO appelServiceItineraires(String adresseDepart, String adresseDestination) {
-        return appelServiceItineraires(adresseDepart, adresseDestination, null, null, null, null);
+    private ItineraireResponseDTO appelServiceItineraires(String villeDepart, String villeDestination) {
+        return appelServiceItineraires(villeDepart, villeDestination, null, null, null, null);
+    }
+
+    @Override
+    public DemandeResponseDTO associerDemande(Long demandeId, DemandeAssociationDTO associationDTO) {
+        logger.info("Association de la demande ID: {} avec mission ID: {} et itinéraire ID: {}",
+                demandeId, associationDTO.missionId(), associationDTO.itineraireId());
+
+        Demande demande = demandeRepository.findById(demandeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Demande non trouvée avec l'ID: " + demandeId));
+
+        // Mettre à jour la mission
+        demande.setMissionId(associationDTO.missionId());
+
+        // Mettre à jour l'itinéraire si fourni
+        if (associationDTO.itineraireId() != null && !associationDTO.itineraireId().isBlank()) {
+            demande.setItineraireAssocieId(associationDTO.itineraireId());
+        }
+
+        // Mettre à jour la distance si fournie
+        if (associationDTO.distanceKm() != null) {
+            demande.setDistanceKm(associationDTO.distanceKm());
+        }
+
+        // Mettre à jour la durée estimée si fournie
+        if (associationDTO.dureeEstimeeMin() != null) {
+            demande.setDureeEstimeeMin(associationDTO.dureeEstimeeMin());
+        }
+
+        demande = demandeRepository.save(demande);
+        logger.info("Demande ID: {} mise à jour avec succès", demandeId);
+
+        return demandeMapper.toResponseDTO(demande);
     }
 
     /**

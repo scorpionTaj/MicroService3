@@ -1,5 +1,6 @@
 package ma.tna.microservice3.service;
 
+import ma.tna.microservice3.dto.DemandeAssociationDTO;
 import ma.tna.microservice3.dto.DemandeRequestDTO;
 import ma.tna.microservice3.dto.DemandeResponseDTO;
 
@@ -40,5 +41,13 @@ public interface DemandeService {
      * @return Liste des demandes du client
      */
     List<DemandeResponseDTO> getDemandesByClient(Long userId);
+
+    /**
+     * Associe une mission et un itinéraire à une demande
+     * @param demandeId L'ID de la demande
+     * @param associationDTO Les données d'association (missionId, itineraireId, etc.)
+     * @return La demande mise à jour
+     */
+    DemandeResponseDTO associerDemande(Long demandeId, DemandeAssociationDTO associationDTO);
 }
 

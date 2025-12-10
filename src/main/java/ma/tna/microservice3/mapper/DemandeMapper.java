@@ -26,10 +26,11 @@ public class DemandeMapper {
         return Demande.builder()
                 .clientId(clientId)
                 .volume(dto.volume())
+                .poids(dto.poids())
                 .natureMarchandise(dto.natureMarchandise())
                 .dateDepart(dto.dateDepart())
-                .adresseDepart(dto.adresseDepart())
-                .adresseDestination(dto.adresseDestination())
+                .villeDepart(dto.villeDepart())
+                .villeDestination(dto.villeDestination())
                 .statutValidation(StatutValidation.EN_ATTENTE_CLIENT)
                 .build();
     }
@@ -47,16 +48,17 @@ public class DemandeMapper {
                 demande.getId(),
                 demande.getClientId(),
                 demande.getVolume(),
+                demande.getPoids(),
                 demande.getNatureMarchandise(),
                 demande.getDateDepart(),
-                demande.getAdresseDepart(),
-                demande.getAdresseDestination(),
+                demande.getVilleDepart(),
+                demande.getVilleDestination(),
                 demande.getStatutValidation().name(),
                 demande.getDevisEstime(),
                 demande.getItineraireAssocieId(),
                 demande.getDistanceKm(),
                 demande.getDureeEstimeeMin(),
-                demande.getGroupeId(),
+                demande.getMissionId(),
                 categorieDTO,
                 demande.getDateCreation(),
                 demande.getDateModification()

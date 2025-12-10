@@ -41,6 +41,12 @@ public class Demande {
     private Double volume;
 
     /**
+     * Poids de la marchandise (en kg)
+     */
+    @Column
+    private Double poids;
+
+    /**
      * Nature de la marchandise à transporter
      */
     @NotBlank
@@ -55,18 +61,18 @@ public class Demande {
     private LocalDateTime dateDepart;
 
     /**
-     * Adresse de départ
+     * Ville de départ
      */
     @NotBlank
-    @Column(nullable = false, length = 500)
-    private String adresseDepart;
+    @Column(nullable = false, length = 100)
+    private String villeDepart;
 
     /**
-     * Adresse de destination
+     * Ville de destination
      */
     @NotBlank
-    @Column(nullable = false, length = 500)
-    private String adresseDestination;
+    @Column(nullable = false, length = 100)
+    private String villeDestination;
 
     /**
      * Statut de validation de la demande
@@ -95,10 +101,10 @@ public class Demande {
     private Integer dureeEstimeeMin;
 
     /**
-     * ID du groupe de transport (pour le regroupement)
+     * ID de la mission associée (pour le regroupement et l'assignation)
      */
     @Column
-    private Long groupeId;
+    private Long missionId;
 
     /**
      * Catégorie de la marchandise

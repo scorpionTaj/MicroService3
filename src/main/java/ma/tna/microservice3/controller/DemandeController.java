@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import ma.tna.microservice3.dto.DemandeAssociationDTO;
 import ma.tna.microservice3.dto.DemandeRequestDTO;
 import ma.tna.microservice3.dto.DemandeResponseDTO;
 import ma.tna.microservice3.service.DemandeService;
@@ -139,6 +140,36 @@ public class DemandeController {
         logger.info("Récupération de la demande ID: {} par l'utilisateur ID: {}", id, userId);
 
         DemandeResponseDTO response = demandeService.getDemandeById(id, userId);
+
+        return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Associe une mission et un itinéraire à une demande
+     * Permet de mettre à jour le missionId et itineraireId d'une demande existante
+     */
+    @Operation(
+        summary = "Associer une mission et un itinéraire à une demande",
+        description = "Met à jour une demande avec l'ID de mission et l'ID d'itinéraire associés",
+        security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearerAuth")}
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Demande associée avec succès",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = DemandeResponseDTO.class))),
+        @ApiResponse(responseCode = "400", description = "Données de requête invalides"),
+        @ApiResponse(responseCode = "401", description = "Non authentifié"),
+        @ApiResponse(responseCode = "404", description = "Demande non trouvée")
+    })
+    @PutMapping("/{id}/association")
+    public ResponseEntity<DemandeResponseDTO> associerDemande(
+            @Parameter(description = "ID de la demande à associer", required = true)
+            @PathVariable Long id,
+            @Valid @RequestBody DemandeAssociationDTO associationDTO
+    ) {
+        logger.info("Association de la demande ID: {} avec mission ID: {} et itinéraire ID: {}",
+                id, associationDTO.missionId(), associationDTO.itineraireId());
+
+        DemandeResponseDTO response = demandeService.associerDemande(id, associationDTO);
 
         return ResponseEntity.ok(response);
     }
