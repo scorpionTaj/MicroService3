@@ -696,8 +696,6 @@ docker system prune -f
                         └─────────────────┘
 ```
 
-```
-
 ---
 
 ## Collection Postman
