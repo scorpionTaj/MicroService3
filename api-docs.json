@@ -140,6 +140,61 @@
     },
     {
       "method": "GET",
+      "path": "/demandes/admin/all",
+      "summary": "[ADMIN] Récupérer TOUTES les demandes",
+      "description": "Retourne la liste de TOUTES les demandes de transport. Accessible uniquement aux administrateurs.",
+      "authentication": "Bearer JWT Token (role=ADMIN)",
+      "requiredRole": "ADMIN",
+      "testExamples": {
+        "powershell": "Invoke-RestMethod -Uri 'http://localhost:8083/api/v1/demandes/admin/all' -Method GET -Headers @{'Authorization'='Bearer YOUR_ADMIN_JWT_TOKEN'}",
+        "curl": "curl -X GET 'http://localhost:8083/api/v1/demandes/admin/all' -H 'Authorization: Bearer YOUR_ADMIN_JWT_TOKEN'",
+        "fetch": "fetch('http://localhost:8083/api/v1/demandes/admin/all', {headers:{'Authorization':'Bearer YOUR_ADMIN_JWT_TOKEN'}}).then(r=>r.json()).then(console.log)"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/demandes/admin/statut/{statut}",
+      "summary": "[ADMIN] Récupérer les demandes par statut",
+      "description": "Retourne la liste des demandes ayant un statut spécifique. Accessible uniquement aux administrateurs.",
+      "authentication": "Bearer JWT Token (role=ADMIN)",
+      "requiredRole": "ADMIN",
+      "parameters": [
+        {
+          "name": "statut",
+          "type": "string",
+          "required": true,
+          "description": "Statut de validation (EN_ATTENTE_CLIENT, VALIDEE_CLIENT, REFUSEE, EN_COURS_TRAITEMENT, TERMINEE)"
+        }
+      ],
+      "testExamples": {
+        "powershell": "Invoke-RestMethod -Uri 'http://localhost:8083/api/v1/demandes/admin/statut/VALIDEE_CLIENT' -Method GET -Headers @{'Authorization'='Bearer YOUR_ADMIN_JWT_TOKEN'}",
+        "curl": "curl -X GET 'http://localhost:8083/api/v1/demandes/admin/statut/VALIDEE_CLIENT' -H 'Authorization: Bearer YOUR_ADMIN_JWT_TOKEN'",
+        "fetch": "fetch('http://localhost:8083/api/v1/demandes/admin/statut/VALIDEE_CLIENT', {headers:{'Authorization':'Bearer YOUR_ADMIN_JWT_TOKEN'}}).then(r=>r.json()).then(console.log)"
+      }
+    },
+    {
+      "method": "GET",
+      "path": "/demandes/mission/{missionId}",
+      "summary": "[PRESTATAIRE/ADMIN] Récupérer les demandes d'une mission",
+      "description": "Retourne la liste des demandes associées à une mission spécifique. Accessible aux prestataires et administrateurs.",
+      "authentication": "Bearer JWT Token (role=PRESTATAIRE ou ADMIN)",
+      "requiredRole": "PRESTATAIRE, ADMIN",
+      "parameters": [
+        {
+          "name": "missionId",
+          "type": "integer",
+          "required": true,
+          "description": "ID de la mission"
+        }
+      ],
+      "testExamples": {
+        "powershell": "Invoke-RestMethod -Uri 'http://localhost:8083/api/v1/demandes/mission/1' -Method GET -Headers @{'Authorization'='Bearer YOUR_JWT_TOKEN'}",
+        "curl": "curl -X GET 'http://localhost:8083/api/v1/demandes/mission/1' -H 'Authorization: Bearer YOUR_JWT_TOKEN'",
+        "fetch": "fetch('http://localhost:8083/api/v1/demandes/mission/1', {headers:{'Authorization':'Bearer YOUR_JWT_TOKEN'}}).then(r=>r.json()).then(console.log)"
+      }
+    },
+    {
+      "method": "GET",
       "path": "/categories",
       "summary": "Récupérer toutes les catégories",
       "description": "Retourne la liste de toutes les catégories de marchandise disponibles",

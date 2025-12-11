@@ -54,13 +54,33 @@ Importez `Service3_Demandes_Transport.postman_collection.json` dans Postman - le
 
 ### Demandes de Transport
 
-| Méthode | Endpoint                              | Description                                      | Authentification |
-| ------- | ------------------------------------- | ------------------------------------------------ | ---------------- |
-| POST    | `/api/v1/demandes`                    | Créer une nouvelle demande de transport          | JWT requis       |
-| GET     | `/api/v1/demandes`                    | Lister toutes mes demandes                       | JWT requis       |
-| GET     | `/api/v1/demandes/{id}`               | Récupérer une demande par ID                     | JWT requis       |
-| PUT     | `/api/v1/demandes/{id}/validation`    | Valider une demande (accepter le devis)          | JWT requis       |
-| PUT     | `/api/v1/demandes/{id}/association`   | Associer une mission et itinéraire à la demande  | JWT requis       |
+| Méthode | Endpoint                              | Description                                      | Authentification | Rôle requis        |
+| ------- | ------------------------------------- | ------------------------------------------------ | ---------------- | ------------------ |
+| POST    | `/api/v1/demandes`                    | Créer une nouvelle demande de transport          | JWT requis       | CLIENT             |
+| GET     | `/api/v1/demandes`                    | Lister toutes mes demandes (client authentifié)  | JWT requis       | CLIENT             |
+| GET     | `/api/v1/demandes/{id}`               | Récupérer une demande par ID                     | JWT requis       | Tous (avec droits) |
+| PUT     | `/api/v1/demandes/{id}/validation`    | Valider une demande (accepter le devis)          | JWT requis       | CLIENT             |
+| PUT     | `/api/v1/demandes/{id}/association`   | Associer une mission et itinéraire à la demande  | JWT requis       | ADMIN/PRESTATAIRE  |
+| GET     | `/api/v1/demandes/admin/all`          | Récupérer TOUTES les demandes                    | JWT requis       | ADMIN              |
+| GET     | `/api/v1/demandes/admin/statut/{statut}` | Récupérer les demandes par statut             | JWT requis       | ADMIN              |
+| GET     | `/api/v1/demandes/mission/{missionId}` | Récupérer les demandes d'une mission            | JWT requis       | PRESTATAIRE/ADMIN  |
+
+> **Contrôle d'accès par rôle:**
+> - **CLIENT** : Peut voir uniquement SES propres demandes
+> - **PRESTATAIRE** : Peut voir les demandes de ses missions assignées + demandes validées
+> - **ADMIN** : Peut voir TOUTES les demandes
+
+### Matrice des Permissions
+
+| Action | CLIENT | PRESTATAIRE | ADMIN |
+|--------|--------|-------------|-------|
+| Créer une demande | ✅ | ❌ | ❌ |
+| Voir ses propres demandes | ✅ | ✅ | ✅ |
+| Voir toutes les demandes | ❌ | ❌ | ✅ |
+| Voir les demandes d'une mission | ❌ | ✅ | ✅ |
+| Filtrer par statut | ❌ | ❌ | ✅ |
+| Valider une demande (client) | ✅ | ❌ | ❌ |
+| Associer mission/itinéraire | ❌ | ✅ | ✅ |
 
 > **Note pour les autres microservices:** L'endpoint `PUT /api/v1/demandes/{id}/association` est destiné à être appelé par d'autres microservices (ex: Service Missions) pour associer une mission et un itinéraire à une demande existante.
 
@@ -329,6 +349,73 @@ Content-Type: application/json
 ```
 
 > **Note:** Cet endpoint est destiné à être appelé par d'autres microservices (ex: Service Missions) pour associer une mission et un itinéraire à une demande existante.
+
+### 6. [ADMIN] Récupérer TOUTES les demandes
+
+```http
+GET /api/v1/demandes/admin/all
+Authorization: Bearer <admin_jwt_token>
+```
+
+**Réponse (200 OK):**
+
+```json
+[
+  {
+    "id": 1,
+    "clientId": 1,
+    "volume": 15.5,
+    "statutValidation": "EN_ATTENTE_CLIENT",
+    ...
+  },
+  {
+    "id": 2,
+    "clientId": 2,
+    "volume": 25.0,
+    "statutValidation": "VALIDEE_CLIENT",
+    ...
+  }
+]
+```
+
+> **Note:** Nécessite un token JWT avec `role=ADMIN`.
+
+### 7. [ADMIN] Récupérer les demandes par statut
+
+```http
+GET /api/v1/demandes/admin/statut/VALIDEE_CLIENT
+Authorization: Bearer <admin_jwt_token>
+```
+
+**Statuts disponibles:**
+- `EN_ATTENTE_CLIENT` - En attente de validation client
+- `VALIDEE_CLIENT` - Validée par le client
+- `VALIDEE_PRESTATAIRE` - Validée par le prestataire
+- `TERMINEE` - Demande terminée
+- `ANNULEE` - Demande annulée
+
+### 8. [PRESTATAIRE/ADMIN] Récupérer les demandes d'une mission
+
+```http
+GET /api/v1/demandes/mission/5
+Authorization: Bearer <prestataire_jwt_token>
+```
+
+**Réponse (200 OK):**
+
+```json
+[
+  {
+    "id": 3,
+    "clientId": 1,
+    "missionId": 5,
+    "statutValidation": "VALIDEE_CLIENT",
+    ...
+  }
+]
+```
+
+> **Note:** Accessible aux prestataires (pour leurs missions) et aux administrateurs.
 
 ---
 

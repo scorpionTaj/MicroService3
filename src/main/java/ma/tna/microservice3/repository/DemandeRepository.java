@@ -34,5 +34,12 @@ public interface DemandeRepository extends JpaRepository<Demande, Long> {
      * @return Liste des demandes correspondantes
      */
     List<Demande> findByClientIdAndStatutValidation(Long clientId, StatutValidation statutValidation);
+
+    /**
+     * Recherche les demandes par ID de mission
+     * @param missionId L'identifiant de la mission
+     * @return Liste des demandes de cette mission
+     */
+    List<Demande> findByMissionId(Long missionId);
 }
 

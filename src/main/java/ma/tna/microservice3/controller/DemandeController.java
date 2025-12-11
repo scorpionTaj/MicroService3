@@ -16,7 +16,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 
@@ -117,6 +119,83 @@ public class DemandeController {
     }
 
     /**
+     * Récupère TOUTES les demandes (Admin uniquement)
+     */
+    @Operation(
+        summary = "Récupérer toutes les demandes (Admin)",
+        description = "Retourne la liste de toutes les demandes de transport. Accessible uniquement aux administrateurs.",
+        security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearerAuth")}
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Liste de toutes les demandes récupérée avec succès"),
+        @ApiResponse(responseCode = "401", description = "Non authentifié"),
+        @ApiResponse(responseCode = "403", description = "Accès refusé - Réservé aux administrateurs")
+    })
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin/all")
+    public ResponseEntity<List<DemandeResponseDTO>> getAllDemandes() {
+        Long userId = getCurrentUserId();
+        logger.info("Récupération de TOUTES les demandes par l'admin ID: {}", userId);
+
+        List<DemandeResponseDTO> demandes = demandeService.getAllDemandes();
+
+        return ResponseEntity.ok(demandes);
+    }
+
+    /**
+     * Récupère les demandes par mission ID (Prestataire)
+     */
+    @Operation(
+        summary = "Récupérer les demandes par mission (Prestataire)",
+        description = "Retourne la liste des demandes associées à une mission spécifique. Accessible aux prestataires et administrateurs.",
+        security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearerAuth")}
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Liste des demandes de la mission récupérée avec succès"),
+        @ApiResponse(responseCode = "401", description = "Non authentifié"),
+        @ApiResponse(responseCode = "403", description = "Accès refusé")
+    })
+    @PreAuthorize("hasAnyRole('PRESTATAIRE', 'ADMIN')")
+    @GetMapping("/mission/{missionId}")
+    public ResponseEntity<List<DemandeResponseDTO>> getDemandesByMission(
+            @Parameter(description = "ID de la mission", required = true)
+            @PathVariable Long missionId
+    ) {
+        Long userId = getCurrentUserId();
+        logger.info("Récupération des demandes de la mission ID: {} par l'utilisateur ID: {}", missionId, userId);
+
+        List<DemandeResponseDTO> demandes = demandeService.getDemandesByMission(missionId);
+
+        return ResponseEntity.ok(demandes);
+    }
+
+    /**
+     * Récupère les demandes par statut (Admin)
+     */
+    @Operation(
+        summary = "Récupérer les demandes par statut (Admin)",
+        description = "Retourne la liste des demandes ayant un statut spécifique. Accessible uniquement aux administrateurs.",
+        security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearerAuth")}
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Liste des demandes par statut récupérée avec succès"),
+        @ApiResponse(responseCode = "401", description = "Non authentifié"),
+        @ApiResponse(responseCode = "403", description = "Accès refusé - Réservé aux administrateurs")
+    })
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/admin/statut/{statut}")
+    public ResponseEntity<List<DemandeResponseDTO>> getDemandesByStatut(
+            @Parameter(description = "Statut de validation (EN_ATTENTE_CLIENT, VALIDEE_CLIENT, REFUSEE, etc.)", required = true)
+            @PathVariable String statut
+    ) {
+        logger.info("Récupération des demandes avec statut: {}", statut);
+
+        List<DemandeResponseDTO> demandes = demandeService.getDemandesByStatut(statut);
+
+        return ResponseEntity.ok(demandes);
+    }
+
+    /**
      * Récupère une demande spécifique par son ID
      */
     @Operation(
@@ -137,9 +216,10 @@ public class DemandeController {
             @PathVariable Long id
     ) {
         Long userId = getCurrentUserId();
-        logger.info("Récupération de la demande ID: {} par l'utilisateur ID: {}", id, userId);
+        String role = getCurrentUserRole();
+        logger.info("Récupération de la demande ID: {} par l'utilisateur ID: {} avec rôle: {}", id, userId, role);
 
-        DemandeResponseDTO response = demandeService.getDemandeById(id, userId);
+        DemandeResponseDTO response = demandeService.getDemandeById(id, userId, role);
 
         return ResponseEntity.ok(response);
     }
@@ -202,6 +282,25 @@ public class DemandeController {
         }
 
         throw new RuntimeException("Utilisateur non authentifié");
+    }
+
+    /**
+     * Récupère le rôle de l'utilisateur actuellement authentifié
+     */
+    private String getCurrentUserRole() {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+
+        if (authentication != null && authentication.getAuthorities() != null) {
+            for (GrantedAuthority authority : authentication.getAuthorities()) {
+                String role = authority.getAuthority();
+                if (role.startsWith("ROLE_")) {
+                    return role.substring(5); // Remove "ROLE_" prefix
+                }
+                return role;
+            }
+        }
+
+        return "CLIENT"; // Default role
     }
 }
 

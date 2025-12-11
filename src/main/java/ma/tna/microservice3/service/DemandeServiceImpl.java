@@ -153,13 +153,27 @@ public class DemandeServiceImpl implements DemandeService {
 
     @Override
     @Transactional(readOnly = true)
-    public DemandeResponseDTO getDemandeById(Long demandeId, Long userId) {
-        logger.info("Récupération de la demande ID: {} par l'utilisateur ID: {}", demandeId, userId);
+    public DemandeResponseDTO getDemandeById(Long demandeId, Long userId, String role) {
+        logger.info("Récupération de la demande ID: {} par l'utilisateur ID: {} avec rôle: {}", demandeId, userId, role);
 
         Demande demande = demandeRepository.findById(demandeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Demande non trouvée avec l'ID: " + demandeId));
 
-        // Vérifier que l'utilisateur est bien le propriétaire de la demande
+        // ADMIN peut voir toutes les demandes
+        if ("ADMIN".equalsIgnoreCase(role)) {
+            return demandeMapper.toResponseDTO(demande);
+        }
+
+        // PRESTATAIRE peut voir les demandes de ses missions
+        if ("PRESTATAIRE".equalsIgnoreCase(role)) {
+            // Pour l'instant, on autorise les prestataires à voir toutes les demandes validées
+            // Plus tard, on pourra filtrer par mission assignée au prestataire
+            if (demande.getStatutValidation() != StatutValidation.EN_ATTENTE_CLIENT) {
+                return demandeMapper.toResponseDTO(demande);
+            }
+        }
+
+        // CLIENT ne peut voir que SES demandes
         if (!demande.getClientId().equals(userId)) {
             throw new UnauthorizedException("Vous n'êtes pas autorisé à consulter cette demande");
         }
@@ -177,6 +191,58 @@ public class DemandeServiceImpl implements DemandeService {
         return demandes.stream()
                 .map(demandeMapper::toResponseDTO)
                 .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DemandeResponseDTO> getAllDemandes() {
+        logger.info("Récupération de TOUTES les demandes (Admin)");
+
+        List<Demande> demandes = demandeRepository.findAll();
+
+        return demandes.stream()
+                .map(demandeMapper::toResponseDTO)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DemandeResponseDTO> getDemandesByStatut(String statut) {
+        logger.info("Récupération des demandes par statut: {}", statut);
+
+        StatutValidation statutValidation = StatutValidation.valueOf(statut.toUpperCase());
+        List<Demande> demandes = demandeRepository.findByStatutValidation(statutValidation);
+
+        return demandes.stream()
+                .map(demandeMapper::toResponseDTO)
+                .toList();
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public List<DemandeResponseDTO> getDemandesByMission(Long missionId) {
+        logger.info("Récupération des demandes pour la mission ID: {}", missionId);
+
+        List<Demande> demandes = demandeRepository.findByMissionId(missionId);
+
+        return demandes.stream()
+                .map(demandeMapper::toResponseDTO)
+                .toList();
+    }
+
+    @Override
+    public DemandeResponseDTO updateStatut(Long demandeId, String nouveauStatut) {
+        logger.info("Mise à jour du statut de la demande ID: {} vers: {}", demandeId, nouveauStatut);
+
+        Demande demande = demandeRepository.findById(demandeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Demande non trouvée avec l'ID: " + demandeId));
+
+        StatutValidation statutValidation = StatutValidation.valueOf(nouveauStatut.toUpperCase());
+        demande.setStatutValidation(statutValidation);
+        demande = demandeRepository.save(demande);
+
+        logger.info("Statut de la demande ID: {} mis à jour vers: {}", demandeId, nouveauStatut);
+        return demandeMapper.toResponseDTO(demande);
     }
 
     // ============ Méthodes privées pour les appels inter-services ============

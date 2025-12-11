@@ -2,7 +2,7 @@
   "info": {
     "name": "Service 3 - Demandes de Transport (Complete)",
     "_postman_id": "service3-demandes-transport-complete",
-    "description": "Collection Postman complète pour tester le Service 3 : Demandes de Transport et Catégories de Marchandises\n\n## 🔐 Authentification JWT\nCe service utilise le même système JWT que le Service Utilisateurs (Microservice 1).\n- **Secret partagé**: transport_marchandises_api2025vs2026\n- **Algorithme**: HS256\n- **Obtenir un token**: POST http://172.30.80.11:31019/account/login/\n\n## 📚 Documentation API\nCe service dispose de plusieurs façons d'accéder à la documentation :\n- **/** - Documentation JSON personnalisée avec exemples de test\n- **/swagger-ui.html** - Interface Swagger UI interactive (ouvrir dans navigateur)\n- **/v3/api-docs** - Spécification OpenAPI 3.0 standard\n\n## Instructions\n1. Utilisez '🔐 Login (Service Utilisateurs)' pour obtenir un token JWT\n2. Ou utilisez le token de test déjà configuré\n3. Lancez 'Health Check' pour vérifier que le service fonctionne\n4. Testez les catégories (lecture publique, écriture avec JWT)\n5. Créez une demande avec 'Créer une Demande'\n\n## Endpoints Principaux - Demandes\n- POST /api/v1/demandes - Créer une demande\n- GET /api/v1/demandes - Lister mes demandes\n- GET /api/v1/demandes/{id} - Voir une demande\n- PUT /api/v1/demandes/{id}/validation - Valider une demande\n- PUT /api/v1/demandes/{id}/association - Associer mission/itinéraire (pour autres microservices)\n\n## Endpoints Principaux - Catégories\n- GET /api/v1/categories - Lister les catégories (public)\n- POST /api/v1/categories - Créer une catégorie (JWT)\n- PUT /api/v1/categories/{id} - Modifier (JWT)\n- DELETE /api/v1/categories/{id} - Supprimer (JWT)",
+    "description": "Collection Postman complète pour tester le Service 3 : Demandes de Transport et Catégories de Marchandises\n\n## 🔐 Authentification JWT\nCe service utilise le même système JWT que le Service Utilisateurs (Microservice 1).\n- **Secret partagé**: transport_marchandises_api2025vs2026\n- **Algorithme**: HS256\n- **Obtenir un token**: POST http://172.30.80.11:31019/account/login/\n\n## 📚 Documentation API\nCe service dispose de plusieurs façons d'accéder à la documentation :\n- **/** - Documentation JSON personnalisée avec exemples de test\n- **/swagger-ui.html** - Interface Swagger UI interactive (ouvrir dans navigateur)\n- **/v3/api-docs** - Spécification OpenAPI 3.0 standard\n\n## Instructions\n1. Utilisez '🔐 Login (Service Utilisateurs)' pour obtenir un token JWT\n2. Ou utilisez le token de test déjà configuré\n3. Lancez 'Health Check' pour vérifier que le service fonctionne\n4. Testez les catégories (lecture publique, écriture avec JWT)\n5. Créez une demande avec 'Créer une Demande'\n\n## Endpoints Principaux - Demandes\n- POST /api/v1/demandes - Créer une demande (CLIENT)\n- GET /api/v1/demandes - Lister mes demandes (CLIENT)\n- GET /api/v1/demandes/{id} - Voir une demande\n- PUT /api/v1/demandes/{id}/validation - Valider une demande (CLIENT)\n- PUT /api/v1/demandes/{id}/association - Associer mission/itinéraire\n- GET /api/v1/demandes/admin/all - Lister TOUTES les demandes (ADMIN)\n- GET /api/v1/demandes/admin/statut/{statut} - Filtrer par statut (ADMIN)\n- GET /api/v1/demandes/mission/{missionId} - Demandes d'une mission (PRESTATAIRE/ADMIN)\n\n## Contrôle d'accès par rôle\n- **CLIENT**: Voit uniquement SES propres demandes\n- **PRESTATAIRE**: Voit les demandes de ses missions + demandes validées\n- **ADMIN**: Voit TOUTES les demandes\n\n## Endpoints Principaux - Catégories\n- GET /api/v1/categories - Lister les catégories (public)\n- POST /api/v1/categories - Créer une catégorie (JWT)\n- PUT /api/v1/categories/{id} - Modifier (JWT)\n- DELETE /api/v1/categories/{id} - Supprimer (JWT)",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -371,6 +371,66 @@
               "path": ["api", "v1", "demandes", "{{demande_id}}", "association"]
             },
             "description": "Associe une mission et un itinéraire à une demande existante. Cet endpoint est destiné à être appelé par d'autres microservices (ex: Service Missions).\n\n**Champs:**\n- missionId (obligatoire): ID de la mission\n- itineraireId (optionnel): ID de l'itinéraire (UUID)\n- distanceKm (optionnel): Distance en km\n- dureeEstimeeMin (optionnel): Durée estimée en minutes"
+          },
+          "response": []
+        },
+        {
+          "name": "6. [ADMIN] Lister TOUTES les Demandes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes/admin/all",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes", "admin", "all"]
+            },
+            "description": "Récupère TOUTES les demandes (Admin uniquement). Nécessite un token JWT avec role=ADMIN."
+          },
+          "response": []
+        },
+        {
+          "name": "7. [ADMIN] Demandes par Statut",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes/admin/statut/VALIDEE_CLIENT",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes", "admin", "statut", "VALIDEE_CLIENT"]
+            },
+            "description": "Récupère les demandes par statut (Admin uniquement).\n\nStatuts disponibles:\n- EN_ATTENTE_CLIENT\n- VALIDEE_CLIENT\n- REFUSEE\n- EN_COURS_TRAITEMENT\n- TERMINEE"
+          },
+          "response": []
+        },
+        {
+          "name": "8. [PRESTATAIRE] Demandes par Mission",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes/mission/1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes", "mission", "1"]
+            },
+            "description": "Récupère les demandes associées à une mission spécifique. Accessible aux prestataires et administrateurs."
           },
           "response": []
         }
