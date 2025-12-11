@@ -11,6 +11,52 @@ Base URL : `/api/v1/demandes`
 
 > **Note importante** : Ce service s'intègre avec les Services 4 (Itinéraires), 5 (Tarification) et 8 (Matching) pour offrir une expérience complète.
 
+---
+
+## 🔐 Rôles et Permissions
+
+Ce service implémente un contrôle d'accès basé sur les rôles (RBAC). Chaque utilisateur a un rôle qui détermine ses permissions.
+
+### Rôles disponibles
+
+| Rôle | Description |
+|------|-------------|
+| **CLIENT** | Utilisateur qui crée des demandes de transport pour ses marchandises |
+| **PRESTATAIRE** | Transporteur qui exécute les missions de transport |
+| **ADMIN** | Administrateur avec accès complet au système |
+
+### Matrice des permissions
+
+| Permission | CLIENT | PRESTATAIRE | ADMIN |
+|------------|:------:|:-----------:|:-----:|
+| Créer une demande de transport | ✅ | ❌ | ❌ |
+| Voir ses propres demandes | ✅ | ✅ | ✅ |
+| Valider une demande (accepter le devis) | ✅ | ❌ | ❌ |
+| Voir TOUTES les demandes | ❌ | ❌ | ✅ |
+| Filtrer les demandes par statut | ❌ | ❌ | ✅ |
+| Voir les demandes d'une mission | ❌ | ✅ | ✅ |
+| Associer mission/itinéraire à une demande | ❌ | ✅ | ✅ |
+| Gérer les catégories (CRUD) | ❌ | ❌ | ✅ |
+| Consulter les catégories (lecture) | ✅ | ✅ | ✅ |
+
+### Règles d'accès détaillées
+
+- **CLIENT** : 
+  - Ne peut voir que **ses propres demandes** (celles qu'il a créées)
+  - Peut créer de nouvelles demandes et les valider (accepter le devis)
+  
+- **PRESTATAIRE** :
+  - Peut voir les demandes **associées à ses missions**
+  - Peut voir les demandes **validées par les clients** (pour le matching)
+  - Ne peut pas créer de demandes
+  
+- **ADMIN** :
+  - Accès **complet** à toutes les demandes
+  - Peut filtrer par statut, voir par mission, etc.
+  - Gestion complète des catégories
+
+---
+
 ## Sommaire
 
 - [Quick Start](#quick-start)
