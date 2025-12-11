@@ -724,11 +724,3 @@ Le fichier `Service3_Demandes_Transport.postman_collection.json` contient :
 | Maven           | 3.9+    | Build                 |
 | JJWT            | 0.12.3  | Gestion tokens JWT    |
 | Lombok          | -       | Réduction boilerplate |
-
----
-
-## Auteur
-
-**MicroService3** - Service Demandes de Transport
-Fait partie de l'architecture microservices de Transport Maroc.
-```
