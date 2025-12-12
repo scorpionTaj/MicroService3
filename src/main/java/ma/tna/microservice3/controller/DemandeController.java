@@ -8,6 +8,7 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import ma.tna.microservice3.dto.ClientInfoDTO;
 import ma.tna.microservice3.dto.DemandeAssociationDTO;
 import ma.tna.microservice3.dto.DemandeRequestDTO;
 import ma.tna.microservice3.dto.DemandeResponseDTO;
@@ -247,11 +248,44 @@ public class DemandeController {
             @Valid @RequestBody DemandeAssociationDTO associationDTO
     ) {
         logger.info("Association de la demande ID: {} avec mission ID: {} et itinéraire ID: {}",
-                id, associationDTO.missionId(), associationDTO.itineraireId());
+                id, associationDTO.missionId(), associationDTO.itineraireAssocieId());
 
         DemandeResponseDTO response = demandeService.associerDemande(id, associationDTO);
 
         return ResponseEntity.ok(response);
+    }
+
+    /**
+     * Récupère les informations du client associé à une demande
+     * Appelle le Service Utilisateurs pour obtenir les détails
+     */
+    @Operation(
+        summary = "Récupérer les informations du client d'une demande",
+        description = "Retourne les informations du client (nom, email, téléphone) associé à une demande. " +
+                      "Appelle le Service Utilisateurs en interne.",
+        security = {@io.swagger.v3.oas.annotations.security.SecurityRequirement(name = "bearerAuth")}
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Informations du client récupérées avec succès",
+            content = @Content(mediaType = "application/json", schema = @Schema(implementation = ClientInfoDTO.class))),
+        @ApiResponse(responseCode = "401", description = "Non authentifié"),
+        @ApiResponse(responseCode = "403", description = "Accès refusé"),
+        @ApiResponse(responseCode = "404", description = "Demande ou client non trouvé")
+    })
+    @GetMapping("/{id}/client")
+    public ResponseEntity<ClientInfoDTO> getClientInfoByDemande(
+            @Parameter(description = "ID de la demande", required = true)
+            @PathVariable Long id,
+            @RequestHeader("Authorization") String authHeader
+    ) {
+        Long userId = getCurrentUserId();
+        String role = getCurrentUserRole();
+        logger.info("Récupération des infos client pour la demande ID: {} par l'utilisateur ID: {} avec rôle: {}", 
+                id, userId, role);
+
+        ClientInfoDTO clientInfo = demandeService.getClientInfoByDemande(id, userId, role, authHeader);
+
+        return ResponseEntity.ok(clientInfo);
     }
 
     /**

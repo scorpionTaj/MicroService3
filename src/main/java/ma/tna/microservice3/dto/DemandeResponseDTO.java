@@ -43,12 +43,6 @@ public record DemandeResponseDTO(
         @Schema(description = "ID de l'itinéraire associé (UUID du service Itinéraires)", example = "550e8400-e29b-41d4-a716-446655440000", nullable = true)
         String itineraireAssocieId,
 
-        @Schema(description = "Distance totale en kilomètres", example = "133.7", nullable = true)
-        Double distanceKm,
-
-        @Schema(description = "Durée estimée en minutes", example = "102", nullable = true)
-        Integer dureeEstimeeMin,
-
         @Schema(description = "ID de la mission associée", example = "3", nullable = true)
         Long missionId,
 

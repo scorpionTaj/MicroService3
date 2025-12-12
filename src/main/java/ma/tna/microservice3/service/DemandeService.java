@@ -1,5 +1,6 @@
 package ma.tna.microservice3.service;
 
+import ma.tna.microservice3.dto.ClientInfoDTO;
 import ma.tna.microservice3.dto.DemandeAssociationDTO;
 import ma.tna.microservice3.dto.DemandeRequestDTO;
 import ma.tna.microservice3.dto.DemandeResponseDTO;
@@ -78,5 +79,15 @@ public interface DemandeService {
      * @return La demande mise à jour
      */
     DemandeResponseDTO updateStatut(Long demandeId, String nouveauStatut);
+
+    /**
+     * Récupère les informations du client d'une demande depuis le Service Utilisateurs
+     * @param demandeId L'ID de la demande
+     * @param userId L'ID de l'utilisateur qui fait la requête
+     * @param role Le rôle de l'utilisateur
+     * @param authToken Le token JWT pour l'authentification auprès du service Utilisateurs
+     * @return Les informations du client
+     */
+    ClientInfoDTO getClientInfoByDemande(Long demandeId, Long userId, String role, String authToken);
 }
 

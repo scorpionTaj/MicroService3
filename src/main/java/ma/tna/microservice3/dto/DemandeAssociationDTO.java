@@ -13,12 +13,6 @@ public record DemandeAssociationDTO(
         Long missionId,
 
         @Schema(description = "ID de l'itinéraire à associer (UUID)", example = "550e8400-e29b-41d4-a716-446655440000", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        String itineraireId,
-
-        @Schema(description = "Distance en km (optionnel, mise à jour si fournie)", example = "133.7", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        Double distanceKm,
-
-        @Schema(description = "Durée estimée en minutes (optionnel, mise à jour si fournie)", example = "102", requiredMode = Schema.RequiredMode.NOT_REQUIRED)
-        Integer dureeEstimeeMin
+        String itineraireAssocieId
 ) {
 }

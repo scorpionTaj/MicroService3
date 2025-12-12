@@ -1,5 +1,6 @@
 package ma.tna.microservice3.service;
 
+import ma.tna.microservice3.dto.ClientInfoDTO;
 import ma.tna.microservice3.dto.CategorieResponseDTO;
 import ma.tna.microservice3.dto.DemandeAssociationDTO;
 import ma.tna.microservice3.dto.DemandeRequestDTO;
@@ -50,6 +51,9 @@ public class DemandeServiceImpl implements DemandeService {
     @Value("${service.url.matching}")
     private String matchingServiceUrl;
 
+    @Value("${service.url.utilisateurs}")
+    private String utilisateursServiceUrl;
+
     public DemandeServiceImpl(
             DemandeRepository demandeRepository,
             CategorieRepository categorieRepository,
@@ -83,29 +87,13 @@ public class DemandeServiceImpl implements DemandeService {
         final Long demandeId = demande.getId();
 
         try {
-            // 2. Appel au Service Itinéraires (MS4) pour calculer l'itinéraire
-            ItineraireResponseDTO itineraire = appelServiceItineraires(
-                    demande.getVilleDepart(),
-                    demande.getVilleDestination(),
-                    userId,
-                    demande.getVolume(),
-                    demande.getNatureMarchandise(),
-                    demande.getDateDepart()
-            );
+            // L'itinéraire sera associé par un autre microservice via l'endpoint /association
+            // itineraireAssocieId reste null à la création
 
-            if (itineraire != null && itineraire.routeId() != null) {
-                demande.setItineraireAssocieId(itineraire.routeId());
-                demande.setDistanceKm(itineraire.totalDistanceKm());
-                demande.setDureeEstimeeMin(itineraire.totalDurationMin());
-                logger.info("Itinéraire associé ID: {} (distance: {} km, durée: {} min) pour la demande ID: {}", 
-                        itineraire.routeId(), itineraire.totalDistanceKm(), itineraire.totalDurationMin(), demandeId);
-            }
-
-            // 3. Appel au Service Tarification pour obtenir un devis
-            // Note: Le service tarification peut utiliser la distance pour calculer le prix
+            // Appel au Service Tarification pour obtenir un devis
             TarifResponseDTO tarif = appelServiceTarification(
                     demande.getVolume(),
-                    demande.getDistanceKm()
+                    null
             );
 
             if (tarif != null) {
@@ -294,7 +282,7 @@ public class DemandeServiceImpl implements DemandeService {
     @Override
     public DemandeResponseDTO associerDemande(Long demandeId, DemandeAssociationDTO associationDTO) {
         logger.info("Association de la demande ID: {} avec mission ID: {} et itinéraire ID: {}",
-                demandeId, associationDTO.missionId(), associationDTO.itineraireId());
+                demandeId, associationDTO.missionId(), associationDTO.itineraireAssocieId());
 
         Demande demande = demandeRepository.findById(demandeId)
                 .orElseThrow(() -> new ResourceNotFoundException("Demande non trouvée avec l'ID: " + demandeId));
@@ -303,18 +291,8 @@ public class DemandeServiceImpl implements DemandeService {
         demande.setMissionId(associationDTO.missionId());
 
         // Mettre à jour l'itinéraire si fourni
-        if (associationDTO.itineraireId() != null && !associationDTO.itineraireId().isBlank()) {
-            demande.setItineraireAssocieId(associationDTO.itineraireId());
-        }
-
-        // Mettre à jour la distance si fournie
-        if (associationDTO.distanceKm() != null) {
-            demande.setDistanceKm(associationDTO.distanceKm());
-        }
-
-        // Mettre à jour la durée estimée si fournie
-        if (associationDTO.dureeEstimeeMin() != null) {
-            demande.setDureeEstimeeMin(associationDTO.dureeEstimeeMin());
+        if (associationDTO.itineraireAssocieId() != null && !associationDTO.itineraireAssocieId().isBlank()) {
+            demande.setItineraireAssocieId(associationDTO.itineraireAssocieId());
         }
 
         demande = demandeRepository.save(demande);
@@ -391,6 +369,60 @@ public class DemandeServiceImpl implements DemandeService {
 
         } catch (Exception e) {
             logger.error("Exception lors de l'appel au service Matching", e);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public ClientInfoDTO getClientInfoByDemande(Long demandeId, Long userId, String role, String authToken) {
+        logger.info("Récupération des infos client pour la demande ID: {} par l'utilisateur ID: {} avec rôle: {}", 
+                demandeId, userId, role);
+
+        // 1. Récupérer la demande et vérifier les droits
+        Demande demande = demandeRepository.findById(demandeId)
+                .orElseThrow(() -> new ResourceNotFoundException("Demande non trouvée avec l'ID: " + demandeId));
+
+        // Vérifier les droits d'accès
+        if (!"ADMIN".equalsIgnoreCase(role) && !"PRESTATAIRE".equalsIgnoreCase(role)) {
+            // CLIENT ne peut voir que ses propres demandes
+            if (!demande.getClientId().equals(userId)) {
+                throw new UnauthorizedException("Vous n'êtes pas autorisé à consulter les informations de ce client");
+            }
+        }
+
+        Long clientId = demande.getClientId();
+
+        // 2. Appeler le Service Utilisateurs pour récupérer les infos
+        try {
+            logger.info("Appel au service Utilisateurs pour le client ID: {}", clientId);
+
+            // L'URL du service utilisateurs est: http://172.30.80.11:31019/account
+            // L'endpoint est: GET /users/{id}/
+            String url = utilisateursServiceUrl.replace("/account", "") + "/account/users/" + clientId + "/";
+
+            ClientInfoDTO clientInfo = webClient.get()
+                    .uri(url)
+                    .header("Authorization", authToken)
+                    .retrieve()
+                    .bodyToMono(ClientInfoDTO.class)
+                    .doOnNext(response -> logger.info("Infos client récupérées: {}", response.email()))
+                    .onErrorResume(e -> {
+                        logger.error("Erreur lors de l'appel au service Utilisateurs: {}", e.getMessage());
+                        return Mono.empty();
+                    })
+                    .block();
+
+            if (clientInfo == null) {
+                throw new ResourceNotFoundException("Impossible de récupérer les informations du client ID: " + clientId);
+            }
+
+            return clientInfo;
+
+        } catch (ResourceNotFoundException e) {
+            throw e;
+        } catch (Exception e) {
+            logger.error("Exception lors de l'appel au service Utilisateurs", e);
+            throw new ResourceNotFoundException("Erreur lors de la récupération des informations du client: " + e.getMessage());
         }
     }
 }

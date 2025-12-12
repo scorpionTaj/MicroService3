@@ -89,18 +89,6 @@ public class Demande {
     private String itineraireAssocieId;
 
     /**
-     * Distance totale calculée par le service itinéraires (en km)
-     */
-    @Column
-    private Double distanceKm;
-
-    /**
-     * Durée totale estimée par le service itinéraires (en minutes)
-     */
-    @Column
-    private Integer dureeEstimeeMin;
-
-    /**
      * ID de la mission associée (pour le regroupement et l'assignation)
      */
     @Column

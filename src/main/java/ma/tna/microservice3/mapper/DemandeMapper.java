@@ -56,8 +56,6 @@ public class DemandeMapper {
                 demande.getStatutValidation().name(),
                 demande.getDevisEstime(),
                 demande.getItineraireAssocieId(),
-                demande.getDistanceKm(),
-                demande.getDureeEstimeeMin(),
                 demande.getMissionId(),
                 categorieDTO,
                 demande.getDateCreation(),
