@@ -112,6 +112,34 @@
       }
     },
     {
+      "method": "GET",
+      "path": "/demandes/{id}/client",
+      "summary": "Récupérer les informations du client d'une demande",
+      "description": "Appelle le Service Utilisateurs pour récupérer les informations du client propriétaire de la demande. Utile pour le Service Notifications.",
+      "authentication": "Bearer JWT Token",
+      "parameters": [
+        {
+          "name": "id",
+          "type": "integer",
+          "required": true,
+          "description": "ID de la demande"
+        }
+      ],
+      "responseSchema": {
+        "id": "integer - ID de l'utilisateur",
+        "email": "string - Email du client",
+        "nom": "string - Nom du client",
+        "prenom": "string - Prénom du client",
+        "telephone": "string - Numéro de téléphone",
+        "userType": "string - Type d'utilisateur (CLIENT)"
+      },
+      "testExamples": {
+        "powershell": "Invoke-RestMethod -Uri 'http://localhost:8083/api/v1/demandes/1/client' -Method GET -Headers @{'Authorization'='Bearer YOUR_JWT_TOKEN'}",
+        "curl": "curl -X GET 'http://localhost:8083/api/v1/demandes/1/client' -H 'Authorization: Bearer YOUR_JWT_TOKEN'",
+        "fetch": "fetch('http://localhost:8083/api/v1/demandes/1/client', {headers:{'Authorization':'Bearer YOUR_JWT_TOKEN'}}).then(r=>r.json()).then(console.log)"
+      }
+    },
+    {
       "method": "PUT",
       "path": "/demandes/{id}/paiement",
       "summary": "Mettre à jour le statut de paiement",
@@ -340,8 +368,8 @@
         "volume": "number - Volume de la marchandise (doit être positif)",
         "natureMarchandise": "string - Nature de la marchandise à transporter",
         "dateDepart": "datetime - Date et heure de départ (doit être dans le futur)",
-        "adresseDepart": "string - Adresse de départ",
-        "adresseDestination": "string - Adresse de destination",
+        "villeDepart": "string - Ville de départ",
+        "villeDestination": "string - Ville de destination",
         "categorieId": "string (UUID) - ID de la catégorie de marchandise (optionnel)"
       }
     },
@@ -353,16 +381,33 @@
         "volume": "number - Volume de la marchandise",
         "natureMarchandise": "string - Nature de la marchandise",
         "dateDepart": "datetime - Date et heure de départ",
-        "adresseDepart": "string - Adresse de départ",
-        "adresseDestination": "string - Adresse de destination",
-        "statutValidation": "string - Statut de validation (EN_ATTENTE, VALIDEE, REFUSEE)",
-        "statutPaiement": "string - Statut de paiement (EN_ATTENTE, PAYEE, REMBOURSEE)",
+        "villeDepart": "string - Ville de départ",
+        "villeDestination": "string - Ville de destination",
+        "statutValidation": "string - Statut de validation (EN_ATTENTE_CLIENT, VALIDEE_CLIENT, etc.)",
         "devisEstime": "decimal - Devis estimé en MAD",
-        "itineraireAssocieId": "integer - ID de l'itinéraire associé",
-        "groupeId": "integer - ID du groupe de transport",
+        "itineraireAssocieId": "string - ID de l'itinéraire associé (null à la création)",
+        "missionId": "integer - ID de la mission associée (null à la création)",
         "categorie": "object - Informations sur la catégorie de marchandise",
         "dateCreation": "datetime - Date de création de la demande",
         "dateModification": "datetime - Date de dernière modification"
+      }
+    },
+    "DemandeAssociation": {
+      "type": "object",
+      "properties": {
+        "missionId": "integer (required) - ID de la mission à associer",
+        "itineraireAssocieId": "string (optional) - ID de l'itinéraire (UUID)"
+      }
+    },
+    "ClientInfo": {
+      "type": "object",
+      "properties": {
+        "id": "integer - ID de l'utilisateur",
+        "email": "string - Email du client",
+        "nom": "string - Nom du client",
+        "prenom": "string - Prénom du client",
+        "telephone": "string - Numéro de téléphone",
+        "userType": "string - Type d'utilisateur (CLIENT)"
       }
     },
     "PaiementStatusUpdate": {

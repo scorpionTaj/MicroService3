@@ -363,14 +363,34 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"missionId\": 5,\n  \"itineraireId\": \"550e8400-e29b-41d4-a716-446655440000\",\n  \"distanceKm\": 90.5,\n  \"dureeEstimeeMin\": 75\n}"
+              "raw": "{\n  \"missionId\": 5,\n  \"itineraireAssocieId\": \"550e8400-e29b-41d4-a716-446655440000\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/api/v1/demandes/{{demande_id}}/association",
               "host": ["{{baseUrl}}"],
               "path": ["api", "v1", "demandes", "{{demande_id}}", "association"]
             },
-            "description": "Associe une mission et un itinéraire à une demande existante. Cet endpoint est destiné à être appelé par d'autres microservices (ex: Service Missions).\n\n**Champs:**\n- missionId (obligatoire): ID de la mission\n- itineraireId (optionnel): ID de l'itinéraire (UUID)\n- distanceKm (optionnel): Distance en km\n- dureeEstimeeMin (optionnel): Durée estimée en minutes"
+            "description": "Associe une mission et un itinéraire à une demande existante. Cet endpoint est destiné à être appelé par d'autres microservices (ex: Service Missions).\n\n**Champs:**\n- missionId (obligatoire): ID de la mission\n- itineraireAssocieId (optionnel): ID de l'itinéraire (UUID)"
+          },
+          "response": []
+        },
+        {
+          "name": "5b. Récupérer les infos du Client",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/demandes/{{demande_id}}/client",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "demandes", "{{demande_id}}", "client"]
+            },
+            "description": "Récupère les informations du client propriétaire de la demande depuis le Service Utilisateurs.\n\n**Réponse:**\n- id: ID de l'utilisateur\n- email: Email du client\n- nom: Nom du client\n- prenom: Prénom du client\n- telephone: Numéro de téléphone\n- userType: Type d'utilisateur (CLIENT)\n\n**Utilisation:** Utile pour le Service Notifications pour envoyer des notifications au client."
           },
           "response": []
         },

@@ -110,6 +110,7 @@ Importez `Service3_Demandes_Transport.postman_collection.json` dans Postman - le
 | GET     | `/api/v1/demandes/admin/all`          | Récupérer TOUTES les demandes                    | JWT requis       | ADMIN              |
 | GET     | `/api/v1/demandes/admin/statut/{statut}` | Récupérer les demandes par statut             | JWT requis       | ADMIN              |
 | GET     | `/api/v1/demandes/mission/{missionId}` | Récupérer les demandes d'une mission            | JWT requis       | PRESTATAIRE/ADMIN  |
+| GET     | `/api/v1/demandes/{id}/client`         | Récupérer les infos du client d'une demande     | JWT requis       | Tous (avec droits) |
 
 > **Contrôle d'accès par rôle:**
 > - **CLIENT** : Peut voir uniquement SES propres demandes
@@ -236,9 +237,7 @@ Importez `Service3_Demandes_Transport.postman_collection.json` dans Postman - le
   "villeDestination": "Rabat",
   "statutValidation": "EN_ATTENTE_CLIENT",
   "devisEstime": 1500.0,
-  "itineraireAssocieId": "550e8400-e29b-41d4-a716-446655440000",
-  "distanceKm": 90.5,
-  "dureeEstimeeMin": 75,
+  "itineraireAssocieId": null,
   "missionId": null,
   "categorie": {
     "idCategorie": "cat-001-meubles",
@@ -251,24 +250,43 @@ Importez `Service3_Demandes_Transport.postman_collection.json` dans Postman - le
 }
 ```
 
+> **Note:** Les champs `distanceKm` et `dureeEstimeeMin` ont été supprimés. L'`itineraireAssocieId` est `null` à la création et peut être associé ultérieurement via l'endpoint `/association`.
+
 ### `DemandeAssociationDTO` (association mission/itinéraire - pour autres microservices)
 
 ```json
 {
   "missionId": 5,
-  "itineraireId": "550e8400-e29b-41d4-a716-446655440000",
-  "distanceKm": 133.7,
-  "dureeEstimeeMin": 102
+  "itineraireAssocieId": "550e8400-e29b-41d4-a716-446655440000"
 }
 ```
 
-| Champ            | Type    | Obligatoire | Description                      |
-| ---------------- | ------- | ----------- | -------------------------------- |
-| `missionId`      | Long    | ✅          | ID de la mission à associer     |
-| `itineraireId`   | String  | ❌          | ID de l'itinéraire (UUID)       |
-| `distanceKm`     | Double  | ❌          | Distance en km                  |
-| `dureeEstimeeMin`| Integer | ❌          | Durée estimée en minutes        |
+| Champ               | Type   | Obligatoire | Description                      |
+| ------------------- | ------ | ----------- | -------------------------------- |
+| `missionId`         | Long   | ✅          | ID de la mission à associer     |
+| `itineraireAssocieId` | String | ❌          | ID de l'itinéraire (UUID)       |
+
+### `ClientInfoDTO` (informations client - pour notifications)
+
+```json
+{
+  "id": 1,
+  "email": "client@example.com",
+  "nom": "Dupont",
+  "prenom": "Jean",
+  "telephone": "+212612345678",
+  "userType": "CLIENT"
+}
 ```
+
+| Champ       | Type   | Description                      |
+| ----------- | ------ | -------------------------------- |
+| `id`        | Long   | ID de l'utilisateur              |
+| `email`     | String | Email du client                  |
+| `nom`       | String | Nom du client                    |
+| `prenom`    | String | Prénom du client                 |
+| `telephone` | String | Numéro de téléphone              |
+| `userType`  | String | Type d'utilisateur (CLIENT)      |
 
 ### Catégories Prédéfinies
 
@@ -375,9 +393,7 @@ Content-Type: application/json
 
 {
   "missionId": 5,
-  "itineraireId": "550e8400-e29b-41d4-a716-446655440000",
-  "distanceKm": 90.5,
-  "dureeEstimeeMin": 75
+  "itineraireAssocieId": "550e8400-e29b-41d4-a716-446655440000"
 }
 ```
 
@@ -388,15 +404,35 @@ Content-Type: application/json
   "id": 1,
   "missionId": 5,
   "itineraireAssocieId": "550e8400-e29b-41d4-a716-446655440000",
-  "distanceKm": 90.5,
-  "dureeEstimeeMin": 75,
   ...
 }
 ```
 
 > **Note:** Cet endpoint est destiné à être appelé par d'autres microservices (ex: Service Missions) pour associer une mission et un itinéraire à une demande existante.
 
-### 6. [ADMIN] Récupérer TOUTES les demandes
+### 6. Récupérer les informations du client d'une demande
+
+```http
+GET /api/v1/demandes/1/client
+Authorization: Bearer <jwt_token>
+```
+
+**Réponse (200 OK):**
+
+```json
+{
+  "id": 1,
+  "email": "client@example.com",
+  "nom": "Dupont",
+  "prenom": "Jean",
+  "telephone": "+212612345678",
+  "userType": "CLIENT"
+}
+```
+
+> **Note:** Cet endpoint appelle le Service Utilisateurs pour récupérer les informations du client propriétaire de la demande. Utile pour le Service Notifications.
+
+### 7. [ADMIN] Récupérer TOUTES les demandes
 
 ```http
 GET /api/v1/demandes/admin/all
@@ -426,7 +462,7 @@ Authorization: Bearer <admin_jwt_token>
 
 > **Note:** Nécessite un token JWT avec `role=ADMIN`.
 
-### 7. [ADMIN] Récupérer les demandes par statut
+### 8. [ADMIN] Récupérer les demandes par statut
 
 ```http
 GET /api/v1/demandes/admin/statut/VALIDEE_CLIENT
@@ -440,7 +476,7 @@ Authorization: Bearer <admin_jwt_token>
 - `TERMINEE` - Demande terminée
 - `ANNULEE` - Demande annulée
 
-### 8. [PRESTATAIRE/ADMIN] Récupérer les demandes d'une mission
+### 9. [PRESTATAIRE/ADMIN] Récupérer les demandes d'une mission
 
 ```http
 GET /api/v1/demandes/mission/5
